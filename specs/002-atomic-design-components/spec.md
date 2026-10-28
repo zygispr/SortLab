@@ -20,6 +20,20 @@ extend parts of the interface predictably. End users see no change.
 
 The "users" of this feature are the people who maintain and extend SortLab.
 
+## Clarifications
+
+### Session 2026-10-28
+
+- Q: How should "no visible difference before and after" be checked? → A: Automated
+  screenshot comparison kept as a permanent test: reference images of the current app at
+  360 px and 1440 px wide in light and dark themes (4 images), matched pixel for pixel.
+- Q: May the page-layout template read or change the app's shared state, or should only
+  organisms and the page do that? → A: Only organisms and the page; the template is pure
+  layout and gets all its content from the page.
+- Q: Where should the level rules and the list of components per level be documented
+  for contributors? → A: A new section in the project README, next to its architecture
+  map.
+
 ## User Scenarios & Testing *(mandatory)*
 
 ### User Story 1 - Find any part of the interface by its level (Priority: P1)
@@ -95,8 +109,8 @@ standard quality checks fail with a message naming the rule; removing it makes t
 
 1. **Given** an atom, **When** a contributor makes it depend on a molecule, organism,
    template, or page, **Then** the quality checks fail and name the broken rule.
-2. **Given** an atom or molecule, **When** a contributor makes it read or change the
-   app's shared state, **Then** the quality checks fail.
+2. **Given** an atom, molecule, or template, **When** a contributor makes it read or
+   change the app's shared state, **Then** the quality checks fail.
 3. **Given** a codebase that follows all rules, **When** the quality checks run, **Then**
    they pass with no new warnings.
 
@@ -105,7 +119,7 @@ standard quality checks fail with a message naming the rule; removing it makes t
 ### Edge Cases
 
 - **A component that could fit two levels**: classify by composition and state access,
-  not size. A component that reads or changes app state is an organism or higher, even if
+  not size. A component that reads or changes app state is an organism (or the page), even if
   it is small (for example the screen-reader announcement area or the first-visit sound
   prompt).
 - **A self-contained panel with no smaller parts** (for example the bar-chart canvas):
@@ -141,17 +155,18 @@ standard quality checks fail with a message naming the rule; removing it makes t
     Playback bar, the Run summary). They may depend on atoms, molecules, and other
     organisms.
   - **Templates**: page layout: the labelled regions and their arrangement on narrow and
-    wide screens, with no app content of their own.
+    wide screens, with no app content or shared state of their own; the page passes in
+    everything they show.
   - **Pages**: the SortLab screen, which places organisms into the template and wires up
     page-wide behavior (keyboard shortcuts, pausing when the tab is hidden, reduced
     motion).
-- **FR-004**: Atoms and molecules MUST NOT read or change the app's shared state; they
-  receive everything they show and report every user action through their inputs and
-  outputs. Only organisms, templates, and pages may connect to shared state.
+- **FR-004**: Atoms, molecules, and templates MUST NOT read or change the app's shared
+  state; they receive everything they show and report every user action through their
+  inputs and outputs. Only organisms and pages may connect to shared state.
 - **FR-005**: A component MUST NOT depend on a component at a higher level.
 - **FR-006**: The classification rules (FR-003 to FR-005) and the list of components per
   level MUST be documented for contributors, including how to decide the level of a new
-  component.
+  component, in a section of the project README next to its architecture map.
 
 **Shared building blocks**
 
@@ -173,15 +188,21 @@ standard quality checks fail with a message naming the rule; removing it makes t
   live announcements, keyboard behavior, focus order, sound, and saved settings.
 - **FR-012**: The existing automated tests MUST keep verifying the same behavior; tests
   may change only where they refer to a component's location or name.
-- **FR-013**: The performance budgets of the sorting visualizer (steady animation,
+- **FR-013**: A permanent automated visual check MUST compare the screen with reference
+  images captured from the app before the restructuring, at the narrowest (360 px) and
+  widest (1440 px) supported widths in light and dark themes (4 images), and fail on any
+  pixel difference. Reference images are compared on the same browser and platform they
+  were captured with.
+- **FR-014**: The performance budgets of the sorting visualizer (steady animation,
   control response, load time) MUST still be met.
 
 **Enforcement**
 
-- **FR-014**: The standard quality checks MUST fail when a component depends on a higher
-  level (FR-005) or when an atom or molecule connects to shared state (FR-004), with a
+- **FR-015**: The standard quality checks MUST fail when a component depends on a higher
+  level (FR-005) or when an atom, molecule, or template connects to shared state
+  (FR-004), with a
   message that names the rule.
-- **FR-015**: Each atom and molecule MUST have its own automated test covering its
+- **FR-016**: Each atom and molecule MUST have its own automated test covering its
   inputs, outputs, and accessible labelling.
 
 ### Key Entities
@@ -200,8 +221,8 @@ standard quality checks fail with a message naming the rule; removing it makes t
 - **SC-001**: 100% of interface components are assigned to exactly one level, and none
   remain outside the level structure.
 - **SC-002**: Zero end-user-visible differences: the full existing test suite passes, and
-  side-by-side screenshots of the screen before and after, at the narrowest and widest
-  supported widths in both light and dark themes, show no difference.
+  the automated visual check (FR-013) finds 0 differing pixels in all 4 reference images
+  (360 px and 1440 px wide, light and dark themes).
 - **SC-003**: Zero dependency-rule violations in the finished codebase, and a deliberately
   introduced violation of each rule is caught by the standard quality checks every time.
 - **SC-004**: Buttons are styled in exactly one place (down from six components today),
