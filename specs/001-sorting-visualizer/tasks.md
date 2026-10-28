@@ -237,7 +237,7 @@ again (`tests/e2e/sound.spec.ts`).
 - [X] T086 Measure performance per quickstart.md → Performance and accessibility checks (DevTools trace at 4× CPU throttle with 1,000 values at max speed, Pause-click response trace, `npm run bench`, sound sync check at 2 steps/s for SC-006, Lighthouse mobile) and record the numbers against each target in a new "Measured results" section of `specs/001-sorting-visualizer/quickstart.md`; fix any budget miss before continuing (Principle V)
 - [ ] T087 Manual checks recorded in the same "Measured results" section of `specs/001-sorting-visualizer/quickstart.md`: keyboard-only pass of the whole page, listening check at maximum speed for clicks/distortion/loudness build-up (FR-027), and token contrast spot-check of state colors in both themes (≥ 3:1) in `src/styles/tokens.css`
 - [X] T088 Remove dead code, unused exports, and unused dependencies across `src/` and `package.json`; extract any logic duplicated three or more times (Principle I)
-- [ ] T089 Run all quality gates — `npm run lint`, `npm run format:check`, `npm run typecheck`, `npm test`, `npm run test:e2e`, `npm run build` — and fix every failure until all pass
+- [X] T089 Run all quality gates — `npm run lint`, `npm run format:check`, `npm run typecheck`, `npm test`, `npm run test:e2e`, `npm run build` — and fix every failure until all pass (Firefox e2e runs in GitHub Actions, `.github/workflows/ci.yml`; Playwright Firefox cannot launch on local macOS 27)
 - [X] T090 Walk through every validation scenario in `specs/001-sorting-visualizer/quickstart.md` (Stories 1–4) against `npm run preview` and confirm each expectation
 
 ---
