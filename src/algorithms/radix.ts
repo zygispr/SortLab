@@ -15,7 +15,7 @@ export function readMax(r: StepRecorder): number {
 }
 
 /** Base-10 digit of `value` at place `exp` (1, 10, 100, …). */
-export function digitAt(value: number, exp: number): number {
+function digitAt(value: number, exp: number): number {
   return Math.floor(value / exp) % 10;
 }
 

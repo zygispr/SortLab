@@ -7,9 +7,10 @@ import { clampDatasetSize, DEFAULT_SIZE, randomLabel, randomValues } from '../da
 import { type Highlight, Player, type PlayerOptions } from '../engine/player';
 import { StepKind } from '../engine/stepBuffer';
 import { createStepsClient, type StepsClient } from '../engine/stepsClient';
+import { clamp } from '../util/clamp';
 
 /** Algorithm selected on arrival (spec Assumptions). */
-export const DEFAULT_ALGORITHM_ID = 'bubble';
+const DEFAULT_ALGORITHM_ID = 'bubble';
 
 /** Playback speed limits and default, in steps per second (research §4). */
 export const MIN_SPEED = 2;
@@ -332,7 +333,7 @@ export function createAppStore(options: StoreOptions = {}) {
           },
 
           setSpeed: (stepsPerSecond) => {
-            const speed = Math.min(MAX_SPEED, Math.max(MIN_SPEED, stepsPerSecond));
+            const speed = clamp(stepsPerSecond, MIN_SPEED, MAX_SPEED);
             player.setSpeed(speed);
             set({ speed });
           },
@@ -443,7 +444,7 @@ export function createAppStore(options: StoreOptions = {}) {
           },
 
           setVolume: (value) => {
-            const volume = Math.min(1, Math.max(0, value));
+            const volume = clamp(value, 0, 1);
             sound.setVolume(volume);
             set({ volume });
           },

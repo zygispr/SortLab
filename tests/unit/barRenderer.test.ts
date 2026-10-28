@@ -1,5 +1,5 @@
 import { runAlgorithm } from '../../src/algorithms/registry';
-import { Player } from '../../src/engine/player';
+import { COMPLETION_SWEEP_MS, Player } from '../../src/engine/player';
 import { computeBarLayout, createBarRenderer, MIN_BAR_CSS_PX } from '../../src/render/barRenderer';
 import { getRecordedCalls } from '../setup';
 
@@ -97,5 +97,46 @@ describe('createBarRenderer', () => {
     }).calls.map((c) => c.name);
     expect(moving).toContain('arc');
     expect(moving).toContain('strokeRect');
+  });
+
+  // Regression: every algorithm marks all bars sorted by its last step, so a sweep that only
+  // "turns bars sorted" drew nothing and the completion animation was invisible (FR-020).
+  it('shows the completion sweep as a highlight moving left to right over sorted bars', () => {
+    const values = Array.from({ length: 40 }, (_, i) => 40 - i);
+    let time = 0;
+    const player = new Player({
+      now: () => time,
+      requestFrame: () => 0,
+      cancelFrame: () => undefined,
+    });
+    player.load(values, runAlgorithm('bubble', values).buffer);
+    while (player.stepForward());
+    expect(player.sorted.every((s) => s === 1)).toBe(true);
+
+    const canvas = document.createElement('canvas');
+    const renderer = createBarRenderer(canvas);
+    renderer.resize(400, 100, 1);
+    const ctx = canvas.getContext('2d')!;
+    /** Fill color of each bar (the tall rectangles), left to right. */
+    const barColors = (at: number) => {
+      time = at;
+      const fills: { y: number; color: unknown }[] = [];
+      ctx.fillRect = (_x: number, y: number) => {
+        fills.push({ y, color: ctx.fillStyle });
+      };
+      renderer.draw(player);
+      // Skip the background (y = 0) and the sorted strips under the bars.
+      return fills.filter((f) => f.y > 0 && f.y < 70).map((f) => f.color);
+    };
+    const highlighted = (at: number) =>
+      barColors(at).flatMap((c, i) => (c === '#111111' ? [i] : []));
+
+    const early = highlighted(200);
+    const late = highlighted(600);
+    expect(early.length).toBeGreaterThan(0);
+    expect(late.length).toBeGreaterThan(0);
+    expect(Math.min(...late)).toBeGreaterThan(Math.max(...early));
+    expect(highlighted(COMPLETION_SWEEP_MS)).toEqual([]);
+    renderer.dispose();
   });
 });

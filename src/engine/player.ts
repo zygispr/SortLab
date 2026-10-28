@@ -3,9 +3,9 @@ import { applyStep, type StepBuffer, StepKind, undoStep } from './stepBuffer';
 /** Duration of the left-to-right sweep that turns every bar sorted at the end. */
 export const COMPLETION_SWEEP_MS = 800;
 /** Longest slide animation for one step. */
-export const MAX_TWEEN_MS = 250;
+const MAX_TWEEN_MS = 250;
 /** Steps shorter than one 60 Hz frame are shown without a slide. */
-export const FRAME_MS = 16.7;
+const FRAME_MS = 16.7;
 /** Caps one frame's time delta so a stalled tab cannot fast-forward the run. */
 const MAX_FRAME_DELTA_MS = 250;
 

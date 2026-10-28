@@ -65,7 +65,8 @@ canvas background in both light and dark themes.
 | Sorted | Same hue gradient at full saturation | Solid baseline strip under the bar |
 
 The legend shows each state's swatch and marker with its name. When finished, a sweep runs
-left to right turning every bar *sorted*, followed by the message
+left to right turning every bar *sorted*, drawn as a highlighted band (the comparing color,
+no marker) travelling across the bars over 800 ms, followed by the message
 "Sorted with {algorithm name}" (FR-020). With reduced motion, the sweep is skipped and all
 bars turn sorted at once.
 

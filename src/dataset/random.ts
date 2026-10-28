@@ -1,3 +1,5 @@
+import { clamp } from '../util/clamp';
+
 /** Random dataset size limits and default (FR-002). */
 export const MIN_SIZE = 10;
 export const MAX_SIZE = 1000;
@@ -31,5 +33,5 @@ export function randomLabel(size: number): string {
 export function clampDatasetSize(size: number): number {
   if (Number.isNaN(size)) return DEFAULT_SIZE;
   const stepped = Math.round(size / SIZE_STEP) * SIZE_STEP;
-  return Math.min(MAX_SIZE, Math.max(MIN_SIZE, stepped));
+  return clamp(stepped, MIN_SIZE, MAX_SIZE);
 }

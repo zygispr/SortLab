@@ -4,6 +4,7 @@ import { useAppStore } from '../store/appStore';
 import controls from './controls.module.css';
 import styles from './DataPanel.module.css';
 import { PasteInput } from './PasteInput';
+import { RangeField } from './RangeField';
 import { UploadInput } from './UploadInput';
 
 /**
@@ -16,32 +17,20 @@ export function DataPanel() {
   const dataError = useAppStore((s) => s.dataError);
   const setDatasetSize = useAppStore((s) => s.setDatasetSize);
   const generateDataset = useAppStore((s) => s.generateDataset);
-  const sliderId = useId();
   const errorId = useId();
 
   return (
     <div className={styles.panel}>
-      <div className={controls.field}>
-        <div className={controls.fieldHeader}>
-          <label htmlFor={sliderId}>Dataset size</label>
-          <span className={controls.fieldValue} aria-hidden="true">
-            {size}
-          </span>
-        </div>
-        <input
-          id={sliderId}
-          className={controls.slider}
-          type="range"
-          min={MIN_SIZE}
-          max={MAX_SIZE}
-          step={SIZE_STEP}
-          value={size}
-          aria-valuetext={`${String(size)} values`}
-          onChange={(e) => {
-            setDatasetSize(Number(e.target.value));
-          }}
-        />
-      </div>
+      <RangeField
+        label="Dataset size"
+        min={MIN_SIZE}
+        max={MAX_SIZE}
+        step={SIZE_STEP}
+        value={size}
+        display={String(size)}
+        valueText={`${String(size)} values`}
+        onChange={setDatasetSize}
+      />
       <button type="button" className={controls.primary} onClick={generateDataset}>
         Generate
       </button>

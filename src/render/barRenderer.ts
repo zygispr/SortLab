@@ -11,6 +11,8 @@ const GAP_THRESHOLD_CSS_PX = 3;
 const EQUAL_VALUES_HEIGHT = 0.6;
 /** Distinct hues precomputed per saturation level. */
 const PALETTE_SIZE = 64;
+/** Width of the completion sweep highlight, as a share of the bars. */
+const SWEEP_BAND = 0.08;
 
 /** Bar geometry in device pixels. */
 export interface BarLayout {
@@ -168,6 +170,9 @@ export function createBarRenderer(canvas: HTMLCanvasElement): BarRenderer {
       const t = easeInOut(player.tweenProgress());
       const sweep = player.sweepProgress();
       const sweepCount = sweep === null ? 0 : Math.ceil(sweep * n);
+      // Algorithms have usually marked every bar sorted by the last step, so the sweep is
+      // drawn as a highlighted band travelling over the bars; otherwise nothing would move.
+      const sweepBand = sweep === null || sweep >= 1 ? 0 : Math.max(1, Math.ceil(n * SWEEP_BAND));
       const stripTop = chartHeight + 2 * dpr;
       const markerTop = chartHeight + 7 * dpr;
       const outline = 2 * dpr;
@@ -189,11 +194,12 @@ export function createBarRenderer(canvas: HTMLCanvasElement): BarRenderer {
         const comparing =
           highlighted && (highlight.kind === StepKind.Compare || highlight.kind === StepKind.Read);
         const isSorted = player.sorted[i] === 1 || i < sweepCount;
+        const inSweep = i < sweepCount && i >= sweepCount - sweepBand;
         const hue = paletteIndex(values[i]!, min, max);
 
         ctx.fillStyle = moving
           ? colors.moving
-          : comparing
+          : comparing || inSweep
             ? colors.comparing
             : (isSorted ? colors.sorted : colors.unsorted)[hue]!;
         ctx.fillRect(x, chartHeight - h, barWidth, h);

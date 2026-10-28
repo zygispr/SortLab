@@ -1,10 +1,11 @@
 import { COMPLETION_SWEEP_MS } from '../engine/player';
+import { clamp } from '../util/clamp';
 
 /** Pitch of the smallest and largest values, in hertz (research §5). */
-export const MIN_PITCH_HZ = 200;
-export const MAX_PITCH_HZ = 1200;
+const MIN_PITCH_HZ = 200;
+const MAX_PITCH_HZ = 1200;
 /** Most tones in the completion sweep, however many values there are. */
-export const MAX_SWEEP_TONES = 64;
+const MAX_SWEEP_TONES = 64;
 
 const ATTACK_S = 0.002;
 const DECAY_S = 0.08;
@@ -23,7 +24,7 @@ const SWEEP_S = COMPLETION_SWEEP_MS / 1000;
  */
 export function pitchFor(value: number, min: number, max: number): number {
   if (!(max > min)) return MIN_PITCH_HZ;
-  const t = Math.min(1, Math.max(0, (value - min) / (max - min)));
+  const t = clamp((value - min) / (max - min), 0, 1);
   return MIN_PITCH_HZ * (MAX_PITCH_HZ / MIN_PITCH_HZ) ** t;
 }
 
@@ -122,7 +123,7 @@ export function createSoundEngine(createContext?: ContextFactory): SoundEngine {
     },
 
     setVolume(value) {
-      volume = Math.min(1, Math.max(0, value));
+      volume = clamp(value, 0, 1);
       if (!audio || muted) return;
       const { ctx, master } = audio;
       master.gain.setTargetAtTime(volume, ctx.currentTime, VOLUME_SMOOTHING_S);
