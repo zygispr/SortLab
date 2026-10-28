@@ -22,5 +22,11 @@ export default tseslint.config(
         tsconfigRootDir: import.meta.dirname,
       },
     },
+    rules: {
+      // tsconfig enables noUncheckedIndexedAccess, so every array and typed-array read is
+      // typed `T | undefined`. The sorting and playback hot paths index arrays whose bounds
+      // they have already checked; `!` states that, without a runtime cost per access.
+      '@typescript-eslint/no-non-null-assertion': 'off',
+    },
   },
 );
