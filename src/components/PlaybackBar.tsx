@@ -1,6 +1,7 @@
 import { canReset, canStepBack, canStepForward, useAppStore } from '../store/appStore';
 import controls from './controls.module.css';
 import styles from './PlaybackBar.module.css';
+import { SoundPrompt } from './SoundPrompt';
 import { SpeedSlider } from './SpeedSlider';
 
 const TOGGLE_LABEL = {
@@ -23,6 +24,7 @@ export function PlaybackBar() {
         <button type="button" className={controls.primary} onClick={togglePlay}>
           {TOGGLE_LABEL[run.status]}
         </button>
+        <SoundPrompt />
         <button
           type="button"
           className={controls.button}

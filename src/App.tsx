@@ -8,6 +8,7 @@ import { Legend } from './components/Legend';
 import { LiveRegion } from './components/LiveRegion';
 import { PlaybackBar } from './components/PlaybackBar';
 import { RunSummary } from './components/RunSummary';
+import { SoundControls } from './components/SoundControls';
 import { Visualizer } from './components/Visualizer';
 import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts';
 import { player, useAppStore } from './store/appStore';
@@ -94,7 +95,9 @@ export function App() {
           <Region id="playback" title="Playback" hideTitle>
             <PlaybackBar />
           </Region>
-          <Region id="sound" title="Sound" />
+          <Region id="sound" title="Sound">
+            <SoundControls />
+          </Region>
         </div>
         <Region
           id="summary"

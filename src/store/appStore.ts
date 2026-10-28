@@ -1,4 +1,6 @@
 import { create } from 'zustand';
+import { createJSONStorage, persist } from 'zustand/middleware';
+import { createSoundEngine, type SoundEngine } from '../audio/soundEngine';
 import { checkSupport, getAlgorithm } from '../algorithms/registry';
 import { createDataset, type Dataset, toFacts } from '../dataset/facts';
 import { clampDatasetSize, DEFAULT_SIZE, randomLabel, randomValues } from '../dataset/random';
@@ -13,6 +15,41 @@ export const DEFAULT_ALGORITHM_ID = 'bubble';
 export const MIN_SPEED = 2;
 export const MAX_SPEED = 60_000;
 export const DEFAULT_SPEED = 100;
+
+/** Sound settings remembered on this device (data-model.md → Settings). */
+export interface SoundSettings {
+  muted: boolean;
+  /** Master volume, 0–1. */
+  volume: number;
+  /** The user turned sound on or dismissed the prompt; the prompt never shows again. */
+  soundPromptAnswered: boolean;
+}
+
+/** `localStorage` key and schema version of the persisted settings. */
+export const SETTINGS_KEY = 'sortlab:settings';
+export const SETTINGS_VERSION = 1;
+/** Sound is off for first-time visitors (FR-026a), at half volume once turned on. */
+export const DEFAULT_SETTINGS: Readonly<SoundSettings> = {
+  muted: true,
+  volume: 0.5,
+  soundPromptAnswered: false,
+};
+
+/** Valid fields of stored settings; missing or malformed fields fall back to the defaults. */
+function readSettings(stored: unknown): SoundSettings {
+  const s: Partial<Record<keyof SoundSettings, unknown>> =
+    typeof stored === 'object' && stored !== null ? stored : {};
+  const { muted, volume, soundPromptAnswered } = s;
+  return {
+    muted: typeof muted === 'boolean' ? muted : DEFAULT_SETTINGS.muted,
+    volume:
+      typeof volume === 'number' && volume >= 0 && volume <= 1 ? volume : DEFAULT_SETTINGS.volume,
+    soundPromptAnswered:
+      typeof soundPromptAnswered === 'boolean'
+        ? soundPromptAnswered
+        : DEFAULT_SETTINGS.soundPromptAnswered,
+  };
+}
 
 /** Run status (data-model.md → RunStatus state machine). */
 export type RunStatus = 'preparing' | 'ready' | 'running' | 'paused' | 'finished';
@@ -47,7 +84,7 @@ export interface Announcement {
   seq: number;
 }
 
-export interface AppState {
+export interface AppState extends SoundSettings {
   dataset: Dataset;
   /** Size used by the next Generate (10–1,000, step 10). */
   datasetSize: number;
@@ -64,6 +101,8 @@ export interface AppState {
   dataError: string | null;
   /** Why the selection was switched to Bubble Sort, until the user picks again. */
   algorithmNotice: string | null;
+  /** The browser has Web Audio; without it the sound controls are replaced by a note. */
+  soundSupported: boolean;
 
   /** Sets the size for the next Generate, rounded to a step of 10 within 10–1,000. */
   setDatasetSize: (size: number) => void;
@@ -100,12 +139,21 @@ export interface AppState {
   stepBack: () => void;
   /** Returns to the original order at step 0 without starting (US2 scenario 4). */
   reset: () => void;
+  /** "Turn on sound": creates the audio (call from a user gesture), unmutes, hides the prompt. */
+  enableSound: () => void;
+  /** "Not now": hides the prompt for good and stays muted. */
+  dismissSoundPrompt: () => void;
+  /** Mute / Unmute, applied at once (FR-025); unmuting also creates the audio if needed. */
+  toggleMute: () => void;
+  /** Sets the volume, clamped to 0–1, applied at once (FR-025). */
+  setVolume: (volume: number) => void;
 }
 
 /** Options for tests; the app uses the defaults. */
 export interface StoreOptions {
   rng?: () => number;
   stepsClient?: StepsClient;
+  soundEngine?: SoundEngine;
   playerOptions?: Pick<PlayerOptions, 'now' | 'requestFrame' | 'cancelFrame'>;
 }
 
@@ -151,12 +199,14 @@ export function describeStep(step: Highlight & { value: number }): string {
 }
 
 /**
- * Creates an independent store with its own player and steps client, and starts
- * preparing the first run. The app uses the shared `useAppStore`; tests create their own.
+ * Creates an independent store with its own player, steps client, and sound engine,
+ * restores the sound settings from `localStorage`, and starts preparing the first run.
+ * The app uses the shared `useAppStore`; tests create their own.
  */
 export function createAppStore(options: StoreOptions = {}) {
   const rng = options.rng ?? Math.random;
   const client = options.stepsClient ?? createStepsClient();
+  const sound = options.soundEngine ?? createSoundEngine();
   let prepareToken = 0;
   // A run is recorded once. Stepping back from finished and forward again is the same run;
   // new steps, Reset, and Start-from-finished begin a new one.
@@ -170,9 +220,17 @@ export function createAppStore(options: StoreOptions = {}) {
     onProgress: ({ position, comparisons, moves, elapsedMs }) => {
       store.setState((s) => ({ run: { ...s.run, position, comparisons, moves, elapsedMs } }));
     },
+    // The player reports at most one step per frame, so this plays at most one tone per frame.
+    onStep: (_highlight, value) => {
+      const { muted, dataset } = store.getState();
+      if (muted) return;
+      sound.beginFrame();
+      sound.playStep(value, dataset.min, dataset.max);
+    },
     onFinish: () => {
-      const { run, algorithmId, dataset, history, announce } = store.getState();
+      const { run, algorithmId, dataset, history, announce, muted } = store.getState();
       store.setState({ run: { ...run, status: 'finished' } });
+      if (!muted) sound.playCompletionSweep(player.current);
       if (!runRecorded) {
         runRecorded = true;
         const { comparisons, moves, elapsedMs } = run;
@@ -191,171 +249,228 @@ export function createAppStore(options: StoreOptions = {}) {
   });
   player.setSpeed(DEFAULT_SPEED);
 
-  const store = create<AppState>()((set, get) => {
-    const setStatus = (status: RunStatus) => {
-      set((s) => ({ run: { ...s.run, status } }));
-    };
+  const store = create<AppState>()(
+    persist<AppState, [], [], SoundSettings>(
+      (set, get) => {
+        const setStatus = (status: RunStatus) => {
+          set((s) => ({ run: { ...s.run, status } }));
+        };
 
-    const play = () => {
-      player.play();
-      if (player.isPlaying) setStatus('running');
-    };
+        // Sound left on from an earlier visit has no audio context yet; the user's Start or step
+        // press is the gesture that lets the browser create (or resume) it.
+        const wakeSound = () => {
+          if (!get().muted) sound.enable();
+        };
 
-    const loadedMessage = () => {
-      const { dataset } = get();
-      return `Loaded ${String(dataset.original.length)} values from ${dataset.label}.`;
-    };
+        const play = () => {
+          player.play();
+          if (player.isPlaying) setStatus('running');
+        };
 
-    return {
-      dataset: randomDataset(DEFAULT_SIZE, 1),
-      datasetSize: DEFAULT_SIZE,
-      algorithmId: DEFAULT_ALGORITHM_ID,
-      run: initialRun(),
-      startQueued: false,
-      history: [],
-      speed: DEFAULT_SPEED,
-      announcement: null,
-      dataError: null,
-      algorithmNotice: null,
+        const loadedMessage = () => {
+          const { dataset } = get();
+          return `Loaded ${String(dataset.original.length)} values from ${dataset.label}.`;
+        };
 
-      setDatasetSize: (size) => {
-        set({ datasetSize: clampDatasetSize(size) });
-      },
-
-      generateDataset: () => {
-        const { datasetSize, dataset } = get();
-        set({
-          dataset: randomDataset(datasetSize, dataset.id + 1),
+        return {
+          dataset: randomDataset(DEFAULT_SIZE, 1),
+          datasetSize: DEFAULT_SIZE,
+          algorithmId: DEFAULT_ALGORITHM_ID,
+          run: initialRun(),
           startQueued: false,
           history: [],
+          speed: DEFAULT_SPEED,
+          announcement: null,
           dataError: null,
-        });
-        get().retryPrepare();
-        get().announce(loadedMessage());
-      },
+          algorithmNotice: null,
+          soundSupported: sound.isSupported(),
+          ...DEFAULT_SETTINGS,
 
-      loadUserDataset: (values, source, label) => {
-        const dataset = createDataset(values, source, label, get().dataset.id + 1);
-        const current = getAlgorithm(get().algorithmId);
-        const support = checkSupport(current, toFacts(dataset));
-        const notice = support.ok
-          ? null
-          : `${current.name} can't sort this data (${support.reason}). Switched to ${getAlgorithm(DEFAULT_ALGORITHM_ID).name}.`;
-        set({
-          dataset,
-          startQueued: false,
-          history: [],
-          dataError: null,
-          ...(notice && { algorithmId: DEFAULT_ALGORITHM_ID, algorithmNotice: notice }),
-        });
-        get().retryPrepare();
-        get().announce(notice ? `${loadedMessage()} ${notice}` : loadedMessage());
-      },
+          setDatasetSize: (size) => {
+            set({ datasetSize: clampDatasetSize(size) });
+          },
 
-      setDataError: (message) => {
-        set({ dataError: message });
-        get().announce(message);
-      },
+          generateDataset: () => {
+            const { datasetSize, dataset } = get();
+            set({
+              dataset: randomDataset(datasetSize, dataset.id + 1),
+              startQueued: false,
+              history: [],
+              dataError: null,
+            });
+            get().retryPrepare();
+            get().announce(loadedMessage());
+          },
 
-      selectAlgorithm: (id) => {
-        if (id === get().algorithmId) return;
-        set({ algorithmId: id, startQueued: false, algorithmNotice: null });
-        get().retryPrepare();
-      },
+          loadUserDataset: (values, source, label) => {
+            const dataset = createDataset(values, source, label, get().dataset.id + 1);
+            const current = getAlgorithm(get().algorithmId);
+            const support = checkSupport(current, toFacts(dataset));
+            const notice = support.ok
+              ? null
+              : `${current.name} can't sort this data (${support.reason}). Switched to ${getAlgorithm(DEFAULT_ALGORITHM_ID).name}.`;
+            set({
+              dataset,
+              startQueued: false,
+              history: [],
+              dataError: null,
+              ...(notice && { algorithmId: DEFAULT_ALGORITHM_ID, algorithmNotice: notice }),
+            });
+            get().retryPrepare();
+            get().announce(notice ? `${loadedMessage()} ${notice}` : loadedMessage());
+          },
 
-      setSpeed: (stepsPerSecond) => {
-        const speed = Math.min(MAX_SPEED, Math.max(MIN_SPEED, stepsPerSecond));
-        player.setSpeed(speed);
-        set({ speed });
-      },
+          setDataError: (message) => {
+            set({ dataError: message });
+            get().announce(message);
+          },
 
-      announce: (text) => {
-        set({ announcement: { text, seq: (get().announcement?.seq ?? 0) + 1 } });
-      },
+          selectAlgorithm: (id) => {
+            if (id === get().algorithmId) return;
+            set({ algorithmId: id, startQueued: false, algorithmNotice: null });
+            get().retryPrepare();
+          },
 
-      retryPrepare: () => {
-        const { dataset, algorithmId } = get();
-        const token = ++prepareToken;
-        runRecorded = false;
-        player.load(dataset.original, null);
-        set({ run: initialRun() });
-        client.generate(algorithmId, Float64Array.from(dataset.original)).then(
-          (steps) => {
-            if (!steps || token !== prepareToken) return;
-            player.load(dataset.original, steps);
-            set((s) => ({ run: { ...s.run, status: 'ready', total: steps.length } }));
-            if (get().startQueued) {
-              set({ startQueued: false });
-              play();
+          setSpeed: (stepsPerSecond) => {
+            const speed = Math.min(MAX_SPEED, Math.max(MIN_SPEED, stepsPerSecond));
+            player.setSpeed(speed);
+            set({ speed });
+          },
+
+          announce: (text) => {
+            set({ announcement: { text, seq: (get().announcement?.seq ?? 0) + 1 } });
+          },
+
+          retryPrepare: () => {
+            const { dataset, algorithmId } = get();
+            const token = ++prepareToken;
+            runRecorded = false;
+            player.load(dataset.original, null);
+            set({ run: initialRun() });
+            client.generate(algorithmId, Float64Array.from(dataset.original)).then(
+              (steps) => {
+                if (!steps || token !== prepareToken) return;
+                player.load(dataset.original, steps);
+                set((s) => ({ run: { ...s.run, status: 'ready', total: steps.length } }));
+                if (get().startQueued) {
+                  set({ startQueued: false });
+                  play();
+                }
+              },
+              () => {
+                if (token !== prepareToken) return;
+                set((s) => ({ run: { ...s.run, prepareError: true }, startQueued: false }));
+              },
+            );
+          },
+
+          start: () => {
+            const { run } = get();
+            if (run.status === 'preparing') {
+              if (!run.prepareError) set({ startQueued: true });
+              return;
             }
+            if (run.status === 'running') return;
+            wakeSound();
+            if (run.status === 'finished') {
+              runRecorded = false;
+              player.reset();
+            }
+            play();
           },
-          () => {
-            if (token !== prepareToken) return;
-            set((s) => ({ run: { ...s.run, prepareError: true }, startQueued: false }));
+
+          pause: () => {
+            if (get().run.status !== 'running') return;
+            player.pause();
+            setStatus('paused');
           },
-        );
-      },
 
-      start: () => {
-        const { run } = get();
-        if (run.status === 'preparing') {
-          if (!run.prepareError) set({ startQueued: true });
-          return;
-        }
-        if (run.status === 'running') return;
-        if (run.status === 'finished') {
-          runRecorded = false;
-          player.reset();
-        }
-        play();
-      },
+          resume: () => {
+            if (get().run.status !== 'paused') return;
+            wakeSound();
+            play();
+          },
 
-      pause: () => {
-        if (get().run.status !== 'running') return;
-        player.pause();
-        setStatus('paused');
-      },
+          togglePlay: () => {
+            const { run, startQueued, pause, resume, start } = get();
+            if (run.status === 'running') pause();
+            else if (run.status === 'paused') resume();
+            else if (run.status === 'preparing' && startQueued) set({ startQueued: false });
+            else start();
+          },
 
-      resume: () => {
-        if (get().run.status === 'paused') play();
-      },
+          stepForward: () => {
+            if (!canStepForward(get().run)) return;
+            wakeSound();
+            const step = player.stepAt(player.position);
+            if (step) get().announce(describeStep(step));
+            player.stepForward();
+            if (!player.isFinished) setStatus('paused');
+          },
 
-      togglePlay: () => {
-        const { run, startQueued, pause, resume, start } = get();
-        if (run.status === 'running') pause();
-        else if (run.status === 'paused') resume();
-        else if (run.status === 'preparing' && startQueued) set({ startQueued: false });
-        else start();
-      },
+          stepBack: () => {
+            if (!canStepBack(get().run)) return;
+            wakeSound();
+            const step = player.stepAt(player.position - 1);
+            player.stepBack();
+            setStatus('paused');
+            if (step) get().announce(`Undid: ${describeStep(step)}`);
+          },
 
-      stepForward: () => {
-        if (!canStepForward(get().run)) return;
-        const step = player.stepAt(player.position);
-        if (step) get().announce(describeStep(step));
-        player.stepForward();
-        if (!player.isFinished) setStatus('paused');
-      },
+          reset: () => {
+            if (get().run.status === 'preparing') return;
+            runRecorded = false;
+            player.reset();
+            set({ startQueued: false });
+            setStatus('ready');
+          },
 
-      stepBack: () => {
-        if (!canStepBack(get().run)) return;
-        const step = player.stepAt(player.position - 1);
-        player.stepBack();
-        setStatus('paused');
-        if (step) get().announce(`Undid: ${describeStep(step)}`);
-      },
+          enableSound: () => {
+            sound.enable();
+            sound.setMuted(false);
+            set({ muted: false, soundPromptAnswered: true });
+          },
 
-      reset: () => {
-        if (get().run.status === 'preparing') return;
-        runRecorded = false;
-        player.reset();
-        set({ startQueued: false });
-        setStatus('ready');
-      },
-    };
-  });
+          dismissSoundPrompt: () => {
+            set({ soundPromptAnswered: true });
+          },
 
+          toggleMute: () => {
+            const muted = !get().muted;
+            if (!muted) sound.enable();
+            sound.setMuted(muted);
+            set({ muted, soundPromptAnswered: true });
+          },
+
+          setVolume: (value) => {
+            const volume = Math.min(1, Math.max(0, value));
+            sound.setVolume(volume);
+            set({ volume });
+          },
+        };
+      },
+      {
+        name: SETTINGS_KEY,
+        version: SETTINGS_VERSION,
+        storage: createJSONStorage(() => localStorage),
+        partialize: ({ muted, volume, soundPromptAnswered }) => ({
+          muted,
+          volume,
+          soundPromptAnswered,
+        }),
+        // Settings from another schema version are not trusted: start from the defaults.
+        migrate: () => ({ ...DEFAULT_SETTINGS }),
+        merge: (stored, current) => ({ ...current, ...readSettings(stored) }),
+      },
+    ),
+  );
+
+  // localStorage is synchronous, so the settings are already restored here.
+  const { muted, volume } = store.getState();
+  sound.setMuted(muted);
+  sound.setVolume(volume);
   store.getState().retryPrepare();
-  return Object.assign(store, { player });
+  return Object.assign(store, { player, soundEngine: sound });
 }
 
 /** The app-wide store. */
@@ -363,3 +478,6 @@ export const useAppStore = createAppStore();
 
 /** The app-wide player, read directly by the canvas on each frame. */
 export const player = useAppStore.player;
+
+/** The app-wide sound engine, for checks such as `isSupported()`. */
+export const soundEngine = useAppStore.soundEngine;

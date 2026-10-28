@@ -11,6 +11,7 @@ import {
   MIN_SPEED,
 } from '../../src/store/appStore';
 import { StepKind } from '../../src/engine/stepBuffer';
+import { fakeSoundEngine } from '../fakeSound';
 import { seeded } from '../seeded';
 
 /** Steps client that answers from `runAlgorithm` on the next task, or fails on demand. */
@@ -39,9 +40,11 @@ function lifecycleStore() {
   let time = 0;
   let scheduled: (() => void) | null = null;
   const client = fakeClient();
+  const sound = fakeSoundEngine();
   const store = createAppStore({
     rng: seeded(1),
     stepsClient: client,
+    soundEngine: sound,
     playerOptions: {
       now: () => time,
       requestFrame: (cb) => {
@@ -63,7 +66,7 @@ function lifecycleStore() {
   };
   const run = () => store.getState().run;
   const announced = () => store.getState().announcement?.text;
-  return { store, client, tick, run, announced };
+  return { store, client, sound, tick, run, announced };
 }
 
 const flush = () =>
@@ -484,5 +487,102 @@ describe('user datasets (T063)', () => {
     expect(store.getState().dataset).toBe(before);
     store.getState().generateDataset();
     expect(store.getState().dataError).toBeNull();
+  });
+});
+
+describe('sound (T078, T079)', () => {
+  it('enableSound() turns audio on, unmutes, and answers the prompt', () => {
+    const { store, sound } = lifecycleStore();
+    store.getState().enableSound();
+    expect(sound.enable).toHaveBeenCalledOnce();
+    expect(sound.setMuted).toHaveBeenLastCalledWith(false);
+    expect(store.getState()).toMatchObject({ muted: false, soundPromptAnswered: true });
+  });
+
+  it('dismissSoundPrompt() answers the prompt and stays muted', () => {
+    const { store, sound } = lifecycleStore();
+    store.getState().dismissSoundPrompt();
+    expect(sound.enable).not.toHaveBeenCalled();
+    expect(store.getState()).toMatchObject({ muted: true, soundPromptAnswered: true });
+  });
+
+  it('toggleMute() and setVolume() reach the sound engine immediately', () => {
+    const { store, sound } = lifecycleStore();
+    store.getState().toggleMute();
+    expect(sound.enable).toHaveBeenCalledOnce();
+    expect(sound.setMuted).toHaveBeenLastCalledWith(false);
+    store.getState().toggleMute();
+    expect(sound.setMuted).toHaveBeenLastCalledWith(true);
+    expect(store.getState().muted).toBe(true);
+    store.getState().setVolume(0.25);
+    expect(sound.setVolume).toHaveBeenLastCalledWith(0.25);
+    store.getState().setVolume(4);
+    expect(store.getState().volume).toBe(1);
+  });
+
+  it('plays one tone per frame at the value of the latest step', async () => {
+    const { store, sound, tick } = lifecycleStore();
+    await flush();
+    store.getState().enableSound();
+    store.getState().setSpeed(1000);
+    store.getState().start();
+    tick(16);
+    const { min, max } = store.getState().dataset;
+    const { a } = store.player.highlight!;
+    expect(sound.beginFrame).toHaveBeenCalledOnce();
+    expect(sound.playStep).toHaveBeenCalledExactlyOnceWith(store.player.current[a], min, max);
+    tick(16);
+    expect(sound.playStep).toHaveBeenCalledTimes(2);
+  });
+
+  it('plays a tone for each manual step (FR-012a)', async () => {
+    const { store, sound } = lifecycleStore();
+    await flush();
+    store.getState().enableSound();
+    store.getState().stepForward();
+    store.getState().stepForward();
+    store.getState().stepBack();
+    expect(sound.beginFrame).toHaveBeenCalledTimes(3);
+    expect(sound.playStep).toHaveBeenCalledTimes(3);
+  });
+
+  it('plays no tones while muted', async () => {
+    const { store, sound, tick } = lifecycleStore();
+    await flush();
+    store.getState().start();
+    tick(100);
+    store.getState().pause();
+    store.getState().stepForward();
+    expect(sound.playStep).not.toHaveBeenCalled();
+  });
+
+  it('plays the completion sweep over the sorted values when a run finishes', async () => {
+    const { store, sound, run } = lifecycleStore();
+    await flush();
+    store.getState().enableSound();
+    while (canStepForward(run())) store.getState().stepForward();
+    expect(sound.playCompletionSweep).toHaveBeenCalledOnce();
+    const sorted = [...store.getState().dataset.original].sort((x, y) => x - y);
+    expect(Array.from(sound.playCompletionSweep.mock.calls[0]![0] as Float64Array)).toEqual(sorted);
+  });
+
+  it('skips the completion sweep while muted', async () => {
+    const { store, sound, run } = lifecycleStore();
+    await flush();
+    while (canStepForward(run())) store.getState().stepForward();
+    expect(sound.playCompletionSweep).not.toHaveBeenCalled();
+  });
+
+  it('wakes audio on Start when sound was left on from an earlier visit', async () => {
+    const { store, sound } = lifecycleStore();
+    store.getState().enableSound();
+    sound.enable.mockClear();
+    const next = lifecycleStore();
+    await flush();
+    expect(next.store.getState().muted).toBe(false);
+    expect(next.sound.enable).not.toHaveBeenCalled();
+    next.store.getState().start();
+    expect(next.sound.enable).toHaveBeenCalled();
+    expect(sound.enable).not.toHaveBeenCalled();
   });
 });
