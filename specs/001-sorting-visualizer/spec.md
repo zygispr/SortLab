@@ -8,6 +8,16 @@
 
 **Input**: User description: "I want to create a sorting algorhitm visualized web application, where user could either upload their own data set they would want to see sorted or just generate a random data set without any uploading. They could then choose a sorting algorhitm from a variety of sorting algorhitms and see the sorting take place in real time with colorful and smooth animations. Also satisfying sounds could play during sorting. After sorting finishes user could choose a different sorting algorhitm."
 
+## Clarifications
+
+### Session 2026-10-28
+
+- Q: Should comparing algorithms be sequential runs only, or also a side-by-side race? → A: One run at a time; compare runs through the run summary.
+- Q: Should users be able to step through a sort one step at a time? → A: Continuous playback by default, plus Step forward and Step back buttons while paused.
+- Q: Should random datasets offer preset arrangements (nearly sorted, reversed, few unique)? → A: Fully random only.
+- Q: Which algorithms should be offered — only comparison sorts, or also non-comparison sorts like Radix and Counting? → A: As many as possible: 20 algorithms (16 comparison, 4 non-comparison) that all work on any random dataset; Counting and Radix sorts are disabled for uploaded data they cannot handle.
+- Q: Should sound start on or off for a first-time visitor? → A: Off by default, with a visible "Turn on sound" prompt until the user chooses.
+
 ## User Scenarios & Testing *(mandatory)*
 
 ### User Story 1 - Watch a random dataset get sorted (Priority: P1)
@@ -17,7 +27,8 @@ arrival), picks a sorting algorithm from a list, and presses Start. Each value i
 bar whose height matches the value. The bars move in real time as the algorithm compares and
 swaps them, with distinct colors for elements being compared, elements being moved, and
 elements already in their final position. The visitor can pause, resume, and change the
-playback speed. When sorting ends, a short completion animation confirms the data is sorted.
+playback speed. While paused, they can step forward or back one step at a time to study
+exactly what the algorithm did. When sorting ends, a short completion animation confirms the data is sorted.
 
 **Why this priority**: This is the core experience. Without it nothing else in the app has
 value; with it alone the app is already a usable, enjoyable learning tool.
@@ -41,9 +52,14 @@ shown.
    from that step.
 5. **Given** sorting is in progress, **When** the user changes the speed, **Then** the
    animation pace changes immediately without restarting.
-6. **Given** sorting is in progress, **When** the last step completes, **Then** all bars show
+6. **Given** sorting is paused, **When** the user presses Step forward, **Then** exactly one
+   step is shown (bars, colors, counters, and sound update) and playback stays paused.
+7. **Given** sorting is paused after at least one step, **When** the user presses Step back,
+   **Then** the previous step is undone exactly: bars, colors, and counters return to their
+   state before that step.
+8. **Given** sorting is in progress, **When** the last step completes, **Then** all bars show
    the "sorted" state, a completion animation plays, and a message names the algorithm used.
-7. **Given** a color-coded state is shown, **When** the user looks at the legend, **Then**
+9. **Given** a color-coded state is shown, **When** the user looks at the legend, **Then**
    each state (unsorted, comparing, moving, sorted) is explained, and each is also
    distinguishable without relying on color alone.
 
@@ -109,25 +125,29 @@ values in order, then sort them with any algorithm.
 
 While sorting, each comparison or move plays a short, pleasant tone whose pitch reflects
 the value involved, so the user can "hear" the data become ordered. A rising sweep of tones
-accompanies the completion animation. The user can mute and adjust the volume at any time.
+accompanies the completion animation. Sound starts off; a "Turn on sound" prompt invites
+the user to enable it, and they can mute and adjust the volume at any time.
 
 **Why this priority**: Sound adds delight and a second sense for following the algorithm,
 but the visual experience is complete without it.
 
-**Independent Test**: Start a sort with sound on and confirm tones play in step with the
+**Independent Test**: Turn sound on from the prompt, start a sort, and confirm tones play in step with the
 animation, their pitch rises with value, and muting silences them immediately.
 
 **Acceptance Scenarios**:
 
-1. **Given** sound is on, **When** sorting is in progress, **Then** a tone plays for each
+1. **Given** a first-time visitor opens the app, **When** the page loads, **Then** sound is
+   off and a "Turn on sound" prompt is shown next to Start; **When** they accept it,
+   **Then** sound turns on and the prompt disappears.
+2. **Given** sound is on, **When** sorting is in progress, **Then** a tone plays for each
    visualized step, with higher values producing higher pitches.
-2. **Given** sound is on, **When** the user presses Mute, **Then** sound stops immediately
+3. **Given** sound is on, **When** the user presses Mute, **Then** sound stops immediately
    and sorting continues silently.
-3. **Given** sound is on, **When** sorting completes, **Then** a completion sweep of tones
+4. **Given** sound is on, **When** sorting completes, **Then** a completion sweep of tones
    plays alongside the completion animation.
-4. **Given** the user muted sound, **When** they return to the app later on the same device,
+5. **Given** the user muted sound, **When** they return to the app later on the same device,
    **Then** sound is still muted.
-5. **Given** the playback speed is very fast, **When** sorting is in progress, **Then**
+6. **Given** the playback speed is very fast, **When** sorting is in progress, **Then**
    tones remain pleasant (no harsh clicks, distortion, or overwhelming volume).
 
 ---
@@ -144,6 +164,9 @@ animation, their pitch rises with value, and muting silences them immediately.
   animate correctly; at 1,000 values bars may be thin but remain visible.
 - Empty file, file with only separators, or file with fewer than 2 values: rejected with a
   clear message.
+- Uploaded data contains decimals, negatives, or a very wide range: algorithms that cannot
+  handle it are disabled with a reason; if one of them was selected, the selection moves to
+  the default algorithm and the user is told why.
 - Uploaded file is not text (for example an image) or exceeds the size limit: rejected with
   a clear message; the current dataset is unchanged.
 - User generates or uploads a new dataset while a sort is running: the current run stops
@@ -152,8 +175,12 @@ animation, their pitch rises with value, and muting silences them immediately.
   same step when the user returns and presses Resume (no skipped or garbled steps).
 - User resizes the window or rotates the device mid-sort: the visualization re-fits the new
   size without restarting.
-- Browser blocks sound until the user interacts: sound starts working after the first user
-  action (pressing Start counts) without an error message.
+- Browser blocks sound until the user interacts: because sound only starts after the user
+  turns it on, the first tone plays without delay or error message.
+- User steps back to the start of a run and then steps forward again: every step replays
+  identically, and counters match the step position.
+- User steps back from the finished state: the completion state is cleared and the run
+  becomes paused at the previous step.
 - User prefers reduced motion (system setting): movement animations are shortened or
   replaced with instant updates, while color states still show progress.
 
@@ -182,12 +209,31 @@ animation, their pitch rises with value, and muting silences them immediately.
 
 **Algorithms and playback**
 
-- **FR-009**: System MUST offer at least these algorithms: Bubble Sort, Selection Sort,
-  Insertion Sort, Merge Sort, Quick Sort, Heap Sort, Shell Sort, and Cocktail Shaker Sort.
+- **FR-009**: System MUST offer these 20 algorithms, grouped by family in the picker:
+  - *Exchange*: Bubble Sort, Cocktail Shaker Sort, Odd-Even Sort, Comb Sort, Gnome Sort
+  - *Selection*: Selection Sort, Cycle Sort, Heap Sort, Pancake Sort
+  - *Insertion*: Insertion Sort, Binary Insertion Sort, Shell Sort
+  - *Divide and conquer*: Merge Sort, Quick Sort
+  - *Hybrid*: Tim Sort, Intro Sort
+  - *Non-comparison*: Counting Sort, Radix Sort (LSD), Radix Sort (MSD), Bucket Sort
+- **FR-009a**: Every algorithm MUST be available for every random dataset. For uploaded
+  data, Counting Sort requires whole numbers whose range (largest minus smallest) is at
+  most 10,000, and both Radix Sorts require non-negative whole numbers; when the data does
+  not meet an algorithm's requirement, that algorithm MUST appear disabled with a one-line
+  reason (for example, "Needs whole numbers"). All other algorithms accept any valid
+  dataset.
+- **FR-009b**: Non-comparison sorts MUST be shown in the same bar view: reading a value
+  highlights it as "being compared" (inspected), and writing a value to a new position
+  counts as a move. Their comparison counter counts these reads.
 - **FR-010**: System MUST show a one-to-two sentence description and the typical time
   complexity of the selected algorithm.
 - **FR-011**: System MUST sort values in ascending order.
-- **FR-012**: Users MUST be able to Start, Pause, Resume, and Reset a sort.
+- **FR-012**: Users MUST be able to Start, Pause, Resume, and Reset a sort. Playback is
+  continuous by default.
+- **FR-012a**: While a run is paused or finished, users MUST be able to Step forward and
+  Step back one step at a time, as far back as the start of the run. Each step MUST update
+  bars, visual states, counters, and sound exactly as during continuous playback, and
+  Resume MUST continue from the step currently shown.
 - **FR-013**: Users MUST be able to change playback speed at any time, from a slow pace
   where individual steps are easy to follow to a fast pace where the largest dataset
   finishes in under 30 seconds with any offered algorithm.
@@ -220,28 +266,34 @@ animation, their pitch rises with value, and muting silences them immediately.
 - **FR-025**: Users MUST be able to mute/unmute and adjust volume at any time; the change
   MUST take effect immediately.
 - **FR-026**: System MUST remember the user's mute and volume choice on the same device.
+- **FR-026a**: Sound MUST be off for a first-time visitor. Until the user turns sound on
+  or dismisses it, a visible "Turn on sound" prompt MUST appear next to the Start control;
+  once the user makes either choice, the prompt MUST NOT reappear on that device.
 - **FR-027**: Sound MUST stay pleasant at every speed: no clicks or distortion, and overall
   loudness MUST NOT build up as steps get faster.
 
 **Interface**
 
-- **FR-028**: Every control MUST be usable with a keyboard and have a clear label, and
-  Space MUST toggle Start/Pause.
+- **FR-028**: Every control MUST be usable with a keyboard and have a clear label. Space
+  MUST toggle Start/Pause, and the Right/Left arrow keys MUST Step forward/back while paused.
 - **FR-029**: The interface MUST work on screens from 360 px wide (phones) to large desktop
   monitors without horizontal scrolling.
 - **FR-030**: Controls that cannot be used in the current state (for example, Resume when
-  nothing is paused) MUST appear disabled.
+  nothing is paused, Step back at the first step, or Step forward at the last step) MUST
+  appear disabled.
 
 ### Key Entities
 
 - **Dataset**: An ordered list of 2–1,000 numbers. Has a source (random or uploaded), its
   original order, and its current order during a run.
-- **Algorithm**: A named sorting method with a short description and typical time
-  complexity. Produces an ordered sequence of steps for a given dataset.
+- **Algorithm**: A named sorting method with a family, a short description, typical time
+  complexity, and any data requirements (see FR-009a). Produces an ordered sequence of
+  steps for a given dataset.
 - **Step**: A single action in a sort — a comparison between two positions, or a move/swap
   of values between positions — plus the positions now known to be in final order.
 - **Run**: One execution of an algorithm on a dataset. Has a status (ready, running,
-  paused, finished), current step, comparison count, move count, and elapsed time.
+  paused, finished), current step position, the full ordered list of its steps (so it can
+  be stepped back and forth), comparison count, move count, and elapsed time.
 - **Playback Settings**: Speed, mute state, and volume chosen by the user.
 
 ## Success Criteria *(mandatory)*
@@ -272,15 +324,21 @@ animation, their pitch rises with value, and muting silences them immediately.
 - Only numeric data is sorted; sorting text, dates, or records with multiple fields is out
   of scope for this version.
 - Sorting is ascending only; a descending option is out of scope for this version.
-- Random datasets use whole numbers spread evenly between 1 and 1,000.
+- Only one run is visualized at a time; running multiple algorithms side by side is out
+  of scope for this version. Algorithms are compared through the run summary (FR-022).
+- Random datasets use whole numbers spread evenly between 1 and 1,000, in fully random
+  order; preset arrangements (nearly sorted, reversed, few unique) are out of scope for
+  this version. Users who want such inputs can upload them (Story 3).
 - The maximum of 1,000 values keeps every bar visible on common screens and keeps
   animations smooth; larger datasets are out of scope.
 - No user accounts, login, saving, or sharing of datasets or runs; everything happens in
   the browser for the current visit, except remembered sound settings.
-- Sound is on by default at a moderate volume, since it is part of the intended experience;
-  it can be muted with one click and the choice is remembered.
+- When the user first turns sound on, it plays at a moderate volume (about half of the
+  maximum).
 - The app supports the current and previous major versions of common desktop and mobile
   browsers; it needs no installation.
+- Joke or impractically slow algorithms (for example Bogo Sort or Stooge Sort) are
+  excluded, because they cannot sort a 1,000-value dataset within the FR-013 time limit.
 - The default algorithm pre-selected on arrival is Bubble Sort, as the most widely
   recognized.
 - The app is a single page with all controls and the visualization visible together; no
