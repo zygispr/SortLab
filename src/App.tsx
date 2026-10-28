@@ -7,6 +7,7 @@ import { DataPanel } from './components/DataPanel';
 import { Legend } from './components/Legend';
 import { LiveRegion } from './components/LiveRegion';
 import { PlaybackBar } from './components/PlaybackBar';
+import { RunSummary } from './components/RunSummary';
 import { Visualizer } from './components/Visualizer';
 import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts';
 import { player, useAppStore } from './store/appStore';
@@ -99,7 +100,9 @@ export function App() {
           id="summary"
           title="Run summary"
           className={[styles.panel, styles.summary].join(' ')}
-        />
+        >
+          <RunSummary />
+        </Region>
         <LiveRegion />
       </main>
     </div>

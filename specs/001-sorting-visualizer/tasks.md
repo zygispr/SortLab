@@ -151,15 +151,15 @@ the original order first, then the summary lists both runs; Generate clears the 
 
 ### Tests for User Story 2 ⚠️ write first, confirm they fail
 
-- [ ] T054 [P] [US2] Add history cases to `tests/unit/store.test.ts`: finishing a run appends one `RunRecord { algorithmId, comparisons, moves, elapsedMs, datasetId }`; stepping back from finished and forward again does not append a second record; Reset or Start-from-finished followed by another finish appends a new record; selecting another algorithm keeps history; `generateDataset()` and `setDataset()` clear history; switching algorithm while running stops the run and restores `Dataset.original` in the player
-- [ ] T055 [P] [US2] Write `tests/integration/RunSummary.test.tsx`: table with caption "Run summary" and columns Algorithm, Comparisons, Moves, Time; one row per record in run order with the algorithm display name; empty state "No runs yet. Press Start to sort this dataset."
-- [ ] T056 [P] [US2] Write `tests/e2e/rerun.spec.ts` following quickstart.md → Story 2: finish a Bubble Sort run at max speed, select Merge Sort (step counter returns to "Step 0 / …"), Start, finish; summary has two rows; Reset after finishing returns to step 0 without starting; Generate clears the summary; `expectNoA11yViolations`
+- [X] T054 [P] [US2] Add history cases to `tests/unit/store.test.ts`: finishing a run appends one `RunRecord { algorithmId, comparisons, moves, elapsedMs, datasetId }`; stepping back from finished and forward again does not append a second record; Reset or Start-from-finished followed by another finish appends a new record; selecting another algorithm keeps history; `generateDataset()` and `setDataset()` clear history; switching algorithm while running stops the run and restores `Dataset.original` in the player
+- [X] T055 [P] [US2] Write `tests/integration/RunSummary.test.tsx`: table with caption "Run summary" and columns Algorithm, Comparisons, Moves, Time; one row per record in run order with the algorithm display name; empty state "No runs yet. Press Start to sort this dataset."
+- [X] T056 [P] [US2] Write `tests/e2e/rerun.spec.ts` following quickstart.md → Story 2: finish a Bubble Sort run at max speed, select Merge Sort (step counter returns to "Step 0 / …"), Start, finish; summary has two rows; Reset after finishing returns to step 0 without starting; Generate clears the summary; `expectNoA11yViolations`
 
 ### Implementation for User Story 2
 
-- [ ] T057 [US2] Extend `src/store/appStore.ts`: `history: RunRecord[]`; append exactly once per run when it reaches `finished` (guard with a per-run `recorded` flag cleared by `reset()`, start-from-finished, and new steps); clear history in `generateDataset()` and `setDataset()`; keep only records whose `datasetId` matches `dataset.id` (makes T054 pass)
-- [ ] T058 [P] [US2] Implement `src/components/RunSummary.tsx` + `src/components/RunSummary.module.css`: accessible `<table>` with `<caption>Run summary</caption>`, header cells with `scope="col"`, numbers via `toLocaleString`, time in seconds with one decimal; empty-state text; table scrolls inside its own container on narrow screens so the page never scrolls horizontally (makes T055 pass)
-- [ ] T059 [US2] Mount `<RunSummary />` in the Run summary region of `src/App.tsx` (makes T056 pass)
+- [X] T057 [US2] Extend `src/store/appStore.ts`: `history: RunRecord[]`; append exactly once per run when it reaches `finished` (guard with a per-run `recorded` flag cleared by `reset()`, start-from-finished, and new steps); clear history in `generateDataset()` and `setDataset()`; keep only records whose `datasetId` matches `dataset.id` (makes T054 pass)
+- [X] T058 [P] [US2] Implement `src/components/RunSummary.tsx` + `src/components/RunSummary.module.css`: accessible `<table>` with `<caption>Run summary</caption>`, header cells with `scope="col"`, numbers via `toLocaleString`, time in seconds with one decimal; empty-state text; table scrolls inside its own container on narrow screens so the page never scrolls horizontally (makes T055 pass)
+- [X] T059 [US2] Mount `<RunSummary />` in the Run summary region of `src/App.tsx` (makes T056 pass)
 
 **Checkpoint**: User Stories 1 and 2 both work independently
 

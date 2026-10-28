@@ -1,5 +1,6 @@
 import { useAppStore } from '../store/appStore';
 import styles from './Counters.module.css';
+import { formatSeconds } from './format';
 
 /** Live comparison and move counts, elapsed time, and step position (FR-021). */
 export function Counters() {
@@ -7,7 +8,7 @@ export function Counters() {
   const rows: [string, string][] = [
     ['Comparisons', comparisons.toLocaleString()],
     ['Moves', moves.toLocaleString()],
-    ['Time', `${(elapsedMs / 1000).toFixed(1)} s`],
+    ['Time', formatSeconds(elapsedMs)],
     ['Step', `${position.toLocaleString()} / ${total.toLocaleString()}`],
   ];
 

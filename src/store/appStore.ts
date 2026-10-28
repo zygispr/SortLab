@@ -32,6 +32,15 @@ export interface RunState {
   prepareError: boolean;
 }
 
+/** One row of the run summary (data-model.md → RunRecord, FR-022). */
+export interface RunRecord {
+  algorithmId: string;
+  comparisons: number;
+  moves: number;
+  elapsedMs: number;
+  datasetId: number;
+}
+
 /** One message for the polite live region; `seq` changes on every call. */
 export interface Announcement {
   text: string;
@@ -46,6 +55,8 @@ export interface AppState {
   run: RunState;
   /** Start was pressed while steps were still being prepared. */
   startQueued: boolean;
+  /** Finished runs on the current dataset, oldest first; cleared when the dataset changes. */
+  history: RunRecord[];
   /** Playback speed in steps per second (2–60,000). */
   speed: number;
   announcement: Announcement | null;
@@ -139,6 +150,9 @@ export function createAppStore(options: StoreOptions = {}) {
   const rng = options.rng ?? Math.random;
   const client = options.stepsClient ?? createStepsClient();
   let prepareToken = 0;
+  // A run is recorded once. Stepping back from finished and forward again is the same run;
+  // new steps, Reset, and Start-from-finished begin a new one.
+  let runRecorded = false;
 
   const randomDataset = (size: number, id: number) =>
     createDataset(randomValues(size, rng), 'random', randomLabel(size), id);
@@ -149,8 +163,18 @@ export function createAppStore(options: StoreOptions = {}) {
       store.setState((s) => ({ run: { ...s.run, position, comparisons, moves, elapsedMs } }));
     },
     onFinish: () => {
-      const { run, algorithmId, announce } = store.getState();
+      const { run, algorithmId, dataset, history, announce } = store.getState();
       store.setState({ run: { ...run, status: 'finished' } });
+      if (!runRecorded) {
+        runRecorded = true;
+        const { comparisons, moves, elapsedMs } = run;
+        store.setState({
+          history: [
+            ...history,
+            { algorithmId, comparisons, moves, elapsedMs, datasetId: dataset.id },
+          ],
+        });
+      }
       const { name } = getAlgorithm(algorithmId);
       announce(
         `Sorted with ${name}: ${run.comparisons.toLocaleString()} comparisons, ${run.moves.toLocaleString()} moves.`,
@@ -180,6 +204,7 @@ export function createAppStore(options: StoreOptions = {}) {
       algorithmId: DEFAULT_ALGORITHM_ID,
       run: initialRun(),
       startQueued: false,
+      history: [],
       speed: DEFAULT_SPEED,
       announcement: null,
 
@@ -189,14 +214,18 @@ export function createAppStore(options: StoreOptions = {}) {
 
       generateDataset: () => {
         const { datasetSize, dataset } = get();
-        set({ dataset: randomDataset(datasetSize, dataset.id + 1), startQueued: false });
+        set({
+          dataset: randomDataset(datasetSize, dataset.id + 1),
+          startQueued: false,
+          history: [],
+        });
         get().retryPrepare();
         announceLoaded();
       },
 
       setDataset: (values, source, label) => {
         const dataset = createDataset(values, source, label, get().dataset.id + 1);
-        set({ dataset, startQueued: false });
+        set({ dataset, startQueued: false, history: [] });
         get().retryPrepare();
       },
 
@@ -219,6 +248,7 @@ export function createAppStore(options: StoreOptions = {}) {
       retryPrepare: () => {
         const { dataset, algorithmId } = get();
         const token = ++prepareToken;
+        runRecorded = false;
         player.load(dataset.original, null);
         set({ run: initialRun() });
         client.generate(algorithmId, Float64Array.from(dataset.original)).then(
@@ -245,7 +275,10 @@ export function createAppStore(options: StoreOptions = {}) {
           return;
         }
         if (run.status === 'running') return;
-        if (run.status === 'finished') player.reset();
+        if (run.status === 'finished') {
+          runRecorded = false;
+          player.reset();
+        }
         play();
       },
 
@@ -285,6 +318,7 @@ export function createAppStore(options: StoreOptions = {}) {
 
       reset: () => {
         if (get().run.status === 'preparing') return;
+        runRecorded = false;
         player.reset();
         set({ startQueued: false });
         setStatus('ready');

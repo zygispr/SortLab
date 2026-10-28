@@ -335,3 +335,98 @@ describe('run lifecycle (T045)', () => {
     expect(describeStep(step)).toBe(text);
   });
 });
+
+describe('run history (T054)', () => {
+  /** Finishes the current run with Step forward. */
+  function finishByStepping(store: ReturnType<typeof lifecycleStore>['store']) {
+    while (canStepForward(store.getState().run)) store.getState().stepForward();
+  }
+
+  it('appends one record when a run finishes', async () => {
+    const { store, run } = lifecycleStore();
+    await flush();
+    finishByStepping(store);
+    const { history, dataset } = store.getState();
+    expect(history).toEqual([
+      {
+        algorithmId: 'bubble',
+        comparisons: run().comparisons,
+        moves: run().moves,
+        elapsedMs: run().elapsedMs,
+        datasetId: dataset.id,
+      },
+    ]);
+  });
+
+  it('records the elapsed running time of a played run', async () => {
+    const { store, tick } = lifecycleStore();
+    await flush();
+    store.getState().setSpeed(MAX_SPEED);
+    store.getState().start();
+    tick(100);
+    expect(store.getState().history).toHaveLength(1);
+    expect(store.getState().history[0]!.elapsedMs).toBeGreaterThan(0);
+  });
+
+  it('does not record twice when stepping back from finished and forward again', async () => {
+    const { store } = lifecycleStore();
+    await flush();
+    finishByStepping(store);
+    store.getState().stepBack();
+    store.getState().stepForward();
+    expect(store.getState().run.status).toBe('finished');
+    expect(store.getState().history).toHaveLength(1);
+  });
+
+  it('records a new run after Reset or Start-from-finished', async () => {
+    const { store, tick } = lifecycleStore();
+    await flush();
+    finishByStepping(store);
+    store.getState().reset();
+    finishByStepping(store);
+    expect(store.getState().history).toHaveLength(2);
+
+    store.getState().setSpeed(MAX_SPEED);
+    store.getState().start();
+    tick(100);
+    expect(store.getState().run.status).toBe('finished');
+    expect(store.getState().history).toHaveLength(3);
+  });
+
+  it('keeps history when the algorithm changes and records the new run', async () => {
+    const { store } = lifecycleStore();
+    await flush();
+    finishByStepping(store);
+    store.getState().selectAlgorithm('merge');
+    await flush();
+    finishByStepping(store);
+    expect(store.getState().history.map((r) => r.algorithmId)).toEqual(['bubble', 'merge']);
+  });
+
+  it('clears history when the dataset changes', async () => {
+    const { store } = lifecycleStore();
+    await flush();
+    finishByStepping(store);
+    store.getState().generateDataset();
+    expect(store.getState().history).toEqual([]);
+
+    await flush();
+    finishByStepping(store);
+    expect(store.getState().history[0]!.datasetId).toBe(store.getState().dataset.id);
+    store.getState().setDataset([3, 1, 2], 'paste', 'Pasted numbers');
+    expect(store.getState().history).toEqual([]);
+  });
+
+  it('switching algorithm while running stops the run and restores the original order', async () => {
+    const { store, tick } = lifecycleStore();
+    await flush();
+    store.getState().setSpeed(1000);
+    store.getState().start();
+    tick(50);
+    expect(Array.from(store.player.current)).not.toEqual(store.getState().dataset.original);
+    store.getState().selectAlgorithm('merge');
+    expect(store.player.isPlaying).toBe(false);
+    expect(Array.from(store.player.current)).toEqual(store.getState().dataset.original);
+    expect(store.getState().history).toEqual([]);
+  });
+});
