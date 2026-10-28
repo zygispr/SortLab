@@ -10,3 +10,11 @@ node_modules/
 
 # Claude Code local settings
 .claude/settings.local.json
+
+# Build and test output
+dist/
+coverage/
+playwright-report/
+test-results/
+*.log
+.env*

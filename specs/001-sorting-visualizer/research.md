@@ -138,7 +138,7 @@ function is trivial to unit-test exhaustively.
 | Build tool / dev server | Vite + `@vitejs/plugin-react` | 8.3 / 6.1 | As requested; native workers and CSS modules |
 | Language | TypeScript (strict) | 6.0.3 | TypeScript 7.0 is out, but `typescript-eslint` 8.72 supports only `<6.1`; stay on 6.0 until it does |
 | State | Zustand | 5.0 | See §1 |
-| Unit and component tests | Vitest + Testing Library (`@testing-library/react`, `@testing-library/user-event`, `@testing-library/jest-dom`) + jsdom | 5.0 / 16.3 for `react`, current majors for `user-event` and `jest-dom` / 30.1 | Shares Vite config. `user-event` simulates real keyboard and pointer input for the keyboard and control tests; `jest-dom` adds DOM matchers (`toBeDisabled`, `toHaveAccessibleName`) |
+| Unit and component tests | Vitest + Testing Library (`@testing-library/react`, `@testing-library/dom`, `@testing-library/user-event`, `@testing-library/jest-dom`) + jsdom | 5.0 / 16.3 (`react`), 10.4 (`dom`), 14.6 (`user-event`), 7.0 (`jest-dom`) / 30.1 | Shares Vite config. `@testing-library/dom` is a required peer of `react` and `jest-dom` that npm does not install on its own. jsdom 30.1 needs Node ≥ 24.15. `user-event` simulates real keyboard and pointer input for the keyboard and control tests; `jest-dom` adds DOM matchers (`toBeDisabled`, `toHaveAccessibleName`) |
 | Type definitions | `@types/react`, `@types/react-dom` | matching React 19 | Required for TypeScript strict mode with React |
 | End-to-end and accessibility tests | Playwright + `@axe-core/playwright` | 1.64 / 4.14 | Chromium, Firefox, WebKit, and a phone viewport |
 | Lint / format | ESLint + `typescript-eslint` + `eslint-plugin-react-hooks`; Prettier | 10.13 / 8.72; 3.9 | Zero-error gate (Principle I) |
