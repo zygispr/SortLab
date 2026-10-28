@@ -34,7 +34,7 @@ A static catalog entry; the catalog lives in `src/algorithms/registry.ts`.
 | `family` | `'exchange' \| 'selection' \| 'insertion' \| 'divide-and-conquer' \| 'hybrid' \| 'non-comparison'` | Picker group (FR-009) |
 | `description` | string | 1–2 sentences (FR-010) |
 | `complexity` | `{ best: string; average: string; worst: string; space: string }` | e.g. `"O(n log n)"` |
-| `supports` | `(d: Dataset) => { ok: true } \| { ok: false; reason: string }` | FR-009a. Always `ok` for random datasets |
+| `supports` (optional) | `(d: DatasetFacts) => Support`, where `Support` is `{ ok: true } \| { ok: false; reason: string }` | FR-009a. Omitted means every dataset is supported. Always `ok` for random datasets |
 | `sort` | `(r: StepRecorder) => void` | See [contracts/algorithm-contract.md](./contracts/algorithm-contract.md) |
 
 **Data requirements (FR-009a)**:
@@ -118,8 +118,10 @@ Rules:
   queues the run to begin as soon as steps arrive.
 - `ready`: `position = 0`, bars show `Dataset.original`. Step forward is enabled (enters
   `paused`).
-- `running` → `finished` when `position = total`: completion animation and sweep sound play,
-  a `RunRecord` is appended to history (once per run).
+- Reaching `position = total` enters `finished`, whether playback got there (`running`) or
+  the user did with Step forward (`paused`). Either way the completion animation and sweep
+  sound play and a `RunRecord` is appended to history (once per run; stepping back and
+  forward again to the end replays the completion but adds no second record).
 - `finished` → `paused` via Step back (completion state cleared).
 - Changing dataset or algorithm from any state stops playback, discards steps, and goes to
   `preparing`. A new dataset also clears history.

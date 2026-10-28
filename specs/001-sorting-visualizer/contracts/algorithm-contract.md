@@ -34,7 +34,8 @@ order (FR-009) and `getAlgorithm(id)`.
 
 1. Access data only through the recorder. Never read or write a copy of the values.
 2. Sort ascending; on return, `r.values` is in non-decreasing order.
-3. Terminate for every valid dataset (2–1,000 finite numbers) in at most 2,000,000 steps.
+3. Terminate for every valid dataset (2–1,000 finite numbers) in fewer than 1,800,000 steps,
+   so the longest run finishes in under 30 s at the top speed of 60,000 steps/s (FR-013).
 4. Be deterministic: the same input produces the same steps (Quick Sort's pivot choice is
    median-of-three, not random).
 5. Temporary storage (buckets, counts, merge buffers) is allowed as ordinary local arrays,

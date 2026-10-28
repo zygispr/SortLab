@@ -4,7 +4,7 @@
 
 **Created**: 2026-10-28
 
-**Status**: Draft
+**Status**: Ready
 
 **Input**: User description: "I want to create a sorting algorhitm visualized web application, where user could either upload their own data set they would want to see sorted or just generate a random data set without any uploading. They could then choose a sorting algorhitm from a variety of sorting algorhitms and see the sorting take place in real time with colorful and smooth animations. Also satisfying sounds could play during sorting. After sorting finishes user could choose a different sorting algorhitm."
 
@@ -251,7 +251,9 @@ animation, their pitch rises with value, and muting silences them immediately.
 - **FR-018**: Visual states MUST be distinguishable without relying on color alone and
   MUST be explained in an on-screen legend.
 - **FR-019**: Bar movements MUST animate smoothly between positions rather than jumping,
-  except when the user's reduced-motion preference is set.
+  except when the user's reduced-motion preference is set. When the speed is so high that
+  a step lasts less than one display frame, each frame shows the latest state instead of
+  animating every individual move.
 - **FR-020**: System MUST play a completion animation when sorting finishes and show a
   message naming the algorithm used.
 - **FR-021**: System MUST show live counters for comparisons and moves during a run.
@@ -275,7 +277,9 @@ animation, their pitch rises with value, and muting silences them immediately.
 **Interface**
 
 - **FR-028**: Every control MUST be usable with a keyboard and have a clear label. Space
-  MUST toggle Start/Pause, and the Right/Left arrow keys MUST Step forward/back while paused.
+  MUST toggle Start/Pause, and the Right/Left arrow keys MUST Step forward/back while paused,
+  except when focus is on a control that uses those keys itself (text inputs, selects,
+  sliders, and, for Space, buttons).
 - **FR-029**: The interface MUST work on screens from 360 px wide (phones) to large desktop
   monitors without horizontal scrolling.
 - **FR-030**: Controls that cannot be used in the current state (for example, Resume when

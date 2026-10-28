@@ -59,7 +59,7 @@ no accounts or backend
 | III. Testing | Unit tests for every algorithm (edge cases from the constitution, using the spec's minimum of 2 values instead of empty: all-equal values, duplicates, sorted, reverse, 1,000 values) and the replay/inverse invariant; parser tests for every rule in the input contract; component tests per control; one Playwright spec per user story; regression test required per bug fix | Pass |
 | IV. User Experience | Every story has acceptance scenarios; [ui-contract.md](./contracts/ui-contract.md) defines every control's enabled state, feedback, error messages, keyboard use, non-color state cues, and live-region text; axe checks in every e2e spec; 360 px layout tested | Pass |
 | V. Performance | Measurable budgets above; canvas rendering and the store updated at most once per frame keep React out of the hot path; budgets verified by DevTools traces, Lighthouse, and a Vitest bench ([quickstart.md](./quickstart.md)) | Pass |
-| VI. Scalability | Stated limits: 1,000 values, ≤ 2 M steps, ~40 MB; inputs above limits are rejected with clear messages; step generation runs in a worker so it never blocks the UI; algorithms, sound, and rendering are independent modules behind small interfaces | Pass |
+| VI. Scalability | Stated limits: 1,000 values, < 1.8 M steps (under 30 s at max speed), ~40 MB; inputs above limits are rejected with clear messages; step generation runs in a worker so it never blocks the UI; algorithms, sound, and rendering are independent modules behind small interfaces | Pass |
 
 **Post-design re-check (after Phase 1)**: Pass. The data model, contracts, and quickstart
 introduce no new dependencies or layers beyond those listed. The one notable risk, 1,000

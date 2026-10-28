@@ -95,6 +95,7 @@ settings) and `tests/e2e/sound.spec.ts` (prompt flow and persistence).
 | Frame rate | Chrome DevTools Performance, 1,000 values, max speed, 4× CPU throttle | No long frames > 50 ms, steady ~60 fps (SC-003) |
 | Control response | Performance trace of clicking Pause | Visible change < 100 ms (SC-004) |
 | Step generation | `tests/unit/perf.bench.ts` (Vitest bench), Gnome Sort on 1,000 reversed values | < 300 ms in the worker; UI stays responsive |
+| Sound sync | `tests/unit/sound.test.ts` asserts each tone is scheduled within 50 ms of its frame's audio time; manual check with sound on at 2 steps/s | Tone starts ≤ 50 ms after its bar change (SC-006) |
 | Load | Lighthouse, mobile preset | Interactive < 2 s |
 | Accessibility | `@axe-core/playwright` in every e2e spec, plus a manual keyboard-only pass | Zero violations, WCAG 2.1 AA (SC-009) |
 | Small screens | Playwright at 360×740 | No horizontal scroll; all controls reachable |

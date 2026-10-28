@@ -45,9 +45,9 @@ Disabled controls use the native `disabled` attribute and a visibly dimmed style
 
 | Key | Action | Scope |
 |-----|--------|-------|
-| Space | Start / Pause / Resume | Anywhere except text inputs, selects, and sliders |
-| → | Step forward | When enabled; not in text inputs or sliders |
-| ← | Step back | When enabled; not in text inputs or sliders |
+| Space | Start / Pause / Resume | Anywhere except text inputs, selects, sliders, and buttons (a focused button keeps its native Space activation) |
+| → | Step forward | When enabled; not in text inputs, selects, or sliders |
+| ← | Step back | When enabled; not in text inputs, selects, or sliders |
 | Tab / Shift+Tab | Move focus in visual order | Everywhere |
 
 Every control has a visible focus outline with at least 3:1 contrast.
@@ -61,7 +61,7 @@ canvas background in both light and dark themes.
 |-------|-------|---------------|
 | Unsorted | Value-based hue gradient (low = violet, high = orange) at reduced saturation | — (baseline) |
 | Comparing / read | White (dark theme) / near-black (light theme) | Small ▲ marker under the bar |
-| Moving | Hot pink | Bar drawn full height with a thick outline, ● marker under the bar |
+| Moving | Hot pink | Bar drawn at its own height with a thick outline, ● marker under the bar |
 | Sorted | Same hue gradient at full saturation | Solid baseline strip under the bar |
 
 The legend shows each state's swatch and marker with its name. When finished, a sweep runs
