@@ -66,3 +66,58 @@ describe('AlgorithmInfo', () => {
     expect(screen.getByText(/merges the two sorted halves/)).toBeInTheDocument();
   });
 });
+
+describe('AlgorithmPicker with uploaded data (T064)', () => {
+  const option = (name: RegExp) => screen.getByRole('option', { name });
+
+  it('disables algorithms that cannot sort decimals, with the reason in the label', () => {
+    render(<AlgorithmPicker />);
+    act(() => {
+      useAppStore.getState().loadUserDataset([1.5, -2, 3], 'paste', 'Pasted numbers');
+    });
+    expect(option(/^Counting Sort/)).toBeDisabled();
+    expect(option(/^Counting Sort/)).toHaveTextContent('Counting Sort — needs whole numbers');
+    expect(option(/^Radix Sort \(LSD\)/)).toHaveTextContent(
+      'Radix Sort (LSD) — needs whole numbers',
+    );
+    expect(option(/^Radix Sort \(LSD\)/)).toBeDisabled();
+    expect(option(/^Radix Sort \(MSD\)/)).toBeDisabled();
+    expect(option(/^Bucket Sort$/)).toBeEnabled();
+    expect(option(/^Bubble Sort$/)).toBeEnabled();
+  });
+
+  it('explains other reasons in lower case', () => {
+    render(<AlgorithmPicker />);
+    act(() => {
+      useAppStore.getState().loadUserDataset([-5, 20_000], 'paste', 'Pasted numbers');
+    });
+    expect(option(/^Counting Sort/)).toHaveTextContent(
+      'Counting Sort — range too wide (over 10,000)',
+    );
+    expect(option(/^Radix Sort \(MSD\)/)).toHaveTextContent(
+      'Radix Sort (MSD) — needs non-negative numbers',
+    );
+  });
+
+  it('disables nothing for a random dataset', () => {
+    render(<AlgorithmPicker />);
+    for (const o of within(screen.getByRole('combobox', { name: 'Algorithm' })).getAllByRole(
+      'option',
+    ))
+      expect(o).toBeEnabled();
+  });
+
+  it('shows why the selection was switched', () => {
+    render(<AlgorithmPicker />);
+    act(() => {
+      useAppStore.getState().selectAlgorithm('radix-msd');
+      useAppStore.getState().loadUserDataset([1.5, 2], 'paste', 'Pasted numbers');
+    });
+    expect(
+      screen.getByText(
+        "Radix Sort (MSD) can't sort this data (Needs whole numbers). Switched to Bubble Sort.",
+      ),
+    ).toBeInTheDocument();
+    expect(screen.getByRole('combobox', { name: 'Algorithm' })).toHaveValue('bubble');
+  });
+});

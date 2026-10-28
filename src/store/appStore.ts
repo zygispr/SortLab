@@ -1,6 +1,6 @@
 import { create } from 'zustand';
-import { getAlgorithm } from '../algorithms/registry';
-import { createDataset, type Dataset } from '../dataset/facts';
+import { checkSupport, getAlgorithm } from '../algorithms/registry';
+import { createDataset, type Dataset, toFacts } from '../dataset/facts';
 import { clampDatasetSize, DEFAULT_SIZE, randomLabel, randomValues } from '../dataset/random';
 import { type Highlight, Player, type PlayerOptions } from '../engine/player';
 import { StepKind } from '../engine/stepBuffer';
@@ -60,16 +60,24 @@ export interface AppState {
   /** Playback speed in steps per second (2–60,000). */
   speed: number;
   announcement: Announcement | null;
+  /** Why the last upload or paste was rejected, until the next successful load. */
+  dataError: string | null;
+  /** Why the selection was switched to Bubble Sort, until the user picks again. */
+  algorithmNotice: string | null;
 
   /** Sets the size for the next Generate, rounded to a step of 10 within 10–1,000. */
   setDatasetSize: (size: number) => void;
   /** Replaces the dataset with a new random one of `datasetSize` values (FR-002, FR-014). */
   generateDataset: () => void;
   /**
-   * Replaces the dataset with `values` and prepares a new run (FR-014). Throws
-   * `RangeError` if the values are not 2–1,000 finite numbers; callers validate first.
+   * Replaces the dataset with uploaded or pasted `values`, clears history and any data
+   * error, and prepares a new run (FR-014). If the selected algorithm cannot sort the data
+   * (FR-009a), switches to Bubble Sort and says why. Throws `RangeError` if the values are
+   * not 2–1,000 finite numbers; callers parse and validate first.
    */
-  setDataset: (values: readonly number[], source: Dataset['source'], label: string) => void;
+  loadUserDataset: (values: readonly number[], source: 'upload' | 'paste', label: string) => void;
+  /** Shows and announces why an upload or paste was rejected; the dataset is unchanged. */
+  setDataError: (message: string) => void;
   /** Selects another algorithm and prepares a new run; the current one does nothing. */
   selectAlgorithm: (id: string) => void;
   /** Sets the playback speed, clamped to 2–60,000 steps per second. */
@@ -193,9 +201,9 @@ export function createAppStore(options: StoreOptions = {}) {
       if (player.isPlaying) setStatus('running');
     };
 
-    const announceLoaded = () => {
-      const { dataset, announce } = get();
-      announce(`Loaded ${String(dataset.original.length)} values from ${dataset.label}.`);
+    const loadedMessage = () => {
+      const { dataset } = get();
+      return `Loaded ${String(dataset.original.length)} values from ${dataset.label}.`;
     };
 
     return {
@@ -207,6 +215,8 @@ export function createAppStore(options: StoreOptions = {}) {
       history: [],
       speed: DEFAULT_SPEED,
       announcement: null,
+      dataError: null,
+      algorithmNotice: null,
 
       setDatasetSize: (size) => {
         set({ datasetSize: clampDatasetSize(size) });
@@ -218,20 +228,38 @@ export function createAppStore(options: StoreOptions = {}) {
           dataset: randomDataset(datasetSize, dataset.id + 1),
           startQueued: false,
           history: [],
+          dataError: null,
         });
         get().retryPrepare();
-        announceLoaded();
+        get().announce(loadedMessage());
       },
 
-      setDataset: (values, source, label) => {
+      loadUserDataset: (values, source, label) => {
         const dataset = createDataset(values, source, label, get().dataset.id + 1);
-        set({ dataset, startQueued: false, history: [] });
+        const current = getAlgorithm(get().algorithmId);
+        const support = checkSupport(current, toFacts(dataset));
+        const notice = support.ok
+          ? null
+          : `${current.name} can't sort this data (${support.reason}). Switched to ${getAlgorithm(DEFAULT_ALGORITHM_ID).name}.`;
+        set({
+          dataset,
+          startQueued: false,
+          history: [],
+          dataError: null,
+          ...(notice && { algorithmId: DEFAULT_ALGORITHM_ID, algorithmNotice: notice }),
+        });
         get().retryPrepare();
+        get().announce(notice ? `${loadedMessage()} ${notice}` : loadedMessage());
+      },
+
+      setDataError: (message) => {
+        set({ dataError: message });
+        get().announce(message);
       },
 
       selectAlgorithm: (id) => {
         if (id === get().algorithmId) return;
-        set({ algorithmId: id, startQueued: false });
+        set({ algorithmId: id, startQueued: false, algorithmNotice: null });
         get().retryPrepare();
       },
 

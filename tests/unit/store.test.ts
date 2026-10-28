@@ -116,10 +116,10 @@ describe('app store (foundation)', () => {
     expect(store.getState().datasetSize).toBe(expected);
   });
 
-  it('setDataset() stores the values with a new id and source', () => {
+  it('loadUserDataset() stores the values with a new id and source', () => {
     const store = createAppStore();
     const firstId = store.getState().dataset.id;
-    store.getState().setDataset([5, 3, 8, 1], 'paste', 'Pasted numbers');
+    store.getState().loadUserDataset([5, 3, 8, 1], 'paste', 'Pasted numbers');
     const { dataset } = store.getState();
     expect(dataset).toMatchObject({
       id: firstId + 1,
@@ -413,7 +413,7 @@ describe('run history (T054)', () => {
     await flush();
     finishByStepping(store);
     expect(store.getState().history[0]!.datasetId).toBe(store.getState().dataset.id);
-    store.getState().setDataset([3, 1, 2], 'paste', 'Pasted numbers');
+    store.getState().loadUserDataset([3, 1, 2], 'paste', 'Pasted numbers');
     expect(store.getState().history).toEqual([]);
   });
 
@@ -428,5 +428,61 @@ describe('run history (T054)', () => {
     expect(store.player.isPlaying).toBe(false);
     expect(Array.from(store.player.current)).toEqual(store.getState().dataset.original);
     expect(store.getState().history).toEqual([]);
+  });
+});
+
+describe('user datasets (T063)', () => {
+  it('loadUserDataset() replaces the dataset, clears history, and announces it', async () => {
+    const { store } = lifecycleStore();
+    await flush();
+    while (canStepForward(store.getState().run)) store.getState().stepForward();
+    expect(store.getState().history).toHaveLength(1);
+
+    store.getState().loadUserDataset([9, -2.5, 4], 'upload', 'file.csv');
+    const { dataset, history, announcement, run, dataError } = store.getState();
+    expect(dataset).toMatchObject({ source: 'upload', label: 'file.csv', original: [9, -2.5, 4] });
+    expect(history).toEqual([]);
+    expect(run.status).toBe('preparing');
+    expect(dataError).toBeNull();
+    expect(announcement?.text).toBe('Loaded 3 values from file.csv.');
+    await flush();
+    expect(store.getState().run.status).toBe('ready');
+  });
+
+  it('switches to Bubble Sort when the selected algorithm cannot sort the data', async () => {
+    const { store } = lifecycleStore();
+    store.getState().selectAlgorithm('radix-lsd');
+    store.getState().loadUserDataset([1.5, 2, 3], 'paste', 'Pasted numbers');
+    const { algorithmId, announcement, algorithmNotice } = store.getState();
+    const why =
+      "Radix Sort (LSD) can't sort this data (Needs whole numbers). Switched to Bubble Sort.";
+    expect(algorithmId).toBe('bubble');
+    expect(announcement?.text).toBe(`Loaded 3 values from Pasted numbers. ${why}`);
+    expect(algorithmNotice).toBe(why);
+    await flush();
+    expect(store.getState().run.total).toBe(runAlgorithm('bubble', [1.5, 2, 3]).buffer.length);
+  });
+
+  it('keeps a selected algorithm that can sort the data, and clears an old notice', () => {
+    const { store } = lifecycleStore();
+    store.getState().selectAlgorithm('counting');
+    store.getState().loadUserDataset([0.5, 1], 'paste', 'Pasted numbers');
+    expect(store.getState().algorithmNotice).not.toBeNull();
+    store.getState().selectAlgorithm('merge');
+    expect(store.getState().algorithmNotice).toBeNull();
+    store.getState().loadUserDataset([3, -1, 2], 'paste', 'Pasted numbers');
+    expect(store.getState().algorithmId).toBe('merge');
+    expect(store.getState().algorithmNotice).toBeNull();
+  });
+
+  it('setDataError() shows and announces the message without touching the dataset', () => {
+    const { store } = lifecycleStore();
+    const before = store.getState().dataset;
+    store.getState().setDataError('This file is larger than 1 MB.');
+    expect(store.getState().dataError).toBe('This file is larger than 1 MB.');
+    expect(store.getState().announcement?.text).toBe('This file is larger than 1 MB.');
+    expect(store.getState().dataset).toBe(before);
+    store.getState().generateDataset();
+    expect(store.getState().dataError).toBeNull();
   });
 });
