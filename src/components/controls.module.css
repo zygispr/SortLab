@@ -1,0 +1,49 @@
+/* Shared control styles for buttons, sliders, and field rows. */
+
+.button {
+  min-height: 2.5rem;
+  padding: var(--space-2) var(--space-4);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  background: var(--color-surface);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.button:hover:not(:disabled) {
+  border-color: var(--color-focus);
+}
+
+.primary {
+  composes: button;
+  border-color: var(--color-focus);
+  background: var(--color-focus);
+  color: var(--color-surface);
+}
+
+.field {
+  display: grid;
+  gap: var(--space-1);
+}
+
+.fieldHeader {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-2);
+  font-size: var(--font-size-small);
+}
+
+.fieldValue {
+  color: var(--color-text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.slider {
+  width: 100%;
+  accent-color: var(--color-focus);
+}
+
+.muted {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-small);
+}

@@ -1,0 +1,588 @@
+import { runAlgorithm } from '../../src/algorithms/registry';
+import type { StepsClient } from '../../src/engine/stepsClient';
+import {
+  canReset,
+  canStepBack,
+  canStepForward,
+  createAppStore,
+  DEFAULT_SPEED,
+  describeStep,
+  MAX_SPEED,
+  MIN_SPEED,
+} from '../../src/store/appStore';
+import { StepKind } from '../../src/engine/stepBuffer';
+import { fakeSoundEngine } from '../fakeSound';
+import { seeded } from '../seeded';
+
+/** Steps client that answers from `runAlgorithm` on the next task, or fails on demand. */
+interface FakeClient extends StepsClient {
+  fail: boolean;
+  requests: number;
+}
+
+function fakeClient(): FakeClient {
+  const client: FakeClient = {
+    fail: false,
+    requests: 0,
+    generate(algorithmId, values) {
+      client.requests++;
+      return client.fail
+        ? Promise.reject(new Error('boom'))
+        : Promise.resolve(runAlgorithm(algorithmId, values).buffer);
+    },
+    dispose: () => undefined,
+  };
+  return client;
+}
+
+/** A store with a fake steps client and a manually driven animation clock. */
+function lifecycleStore() {
+  let time = 0;
+  let scheduled: (() => void) | null = null;
+  const client = fakeClient();
+  const sound = fakeSoundEngine();
+  const store = createAppStore({
+    rng: seeded(1),
+    stepsClient: client,
+    soundEngine: sound,
+    playerOptions: {
+      now: () => time,
+      requestFrame: (cb) => {
+        scheduled = () => {
+          cb(time);
+        };
+        return 1;
+      },
+      cancelFrame: () => {
+        scheduled = null;
+      },
+    },
+  });
+  const tick = (ms: number) => {
+    time += ms;
+    const run = scheduled;
+    scheduled = null;
+    run?.();
+  };
+  const run = () => store.getState().run;
+  const announced = () => store.getState().announcement?.text;
+  return { store, client, sound, tick, run, announced };
+}
+
+const flush = () =>
+  new Promise((resolve) => {
+    setTimeout(resolve, 0);
+  });
+
+describe('app store (foundation)', () => {
+  it('starts with a random 50-value dataset, Bubble Sort, speed 100, preparing', () => {
+    const { dataset, datasetSize, algorithmId, speed, run, announcement } =
+      createAppStore().getState();
+    expect(dataset.original).toHaveLength(50);
+    expect(dataset.source).toBe('random');
+    expect(dataset.label).toBe('Random · 50 values');
+    expect(datasetSize).toBe(50);
+    expect(algorithmId).toBe('bubble');
+    expect(speed).toBe(DEFAULT_SPEED);
+    expect(speed).toBe(100);
+    expect(run).toEqual({
+      status: 'preparing',
+      position: 0,
+      total: 0,
+      comparisons: 0,
+      moves: 0,
+      elapsedMs: 0,
+      prepareError: false,
+    });
+    expect(announcement).toBeNull();
+  });
+
+  it('generateDataset() uses the chosen size and a new dataset id', () => {
+    const store = createAppStore();
+    const firstId = store.getState().dataset.id;
+    store.getState().setDatasetSize(200);
+    store.getState().generateDataset();
+    const { dataset } = store.getState();
+    expect(dataset.original).toHaveLength(200);
+    expect(dataset.label).toBe('Random · 200 values');
+    expect(dataset.id).toBe(firstId + 1);
+  });
+
+  it.each([
+    [5, 10],
+    [200, 200],
+    [204, 200],
+    [1500, 1000],
+  ])('setDatasetSize(%d) stores %d', (input, expected) => {
+    const store = createAppStore();
+    store.getState().setDatasetSize(input);
+    expect(store.getState().datasetSize).toBe(expected);
+  });
+
+  it('loadUserDataset() stores the values with a new id and source', () => {
+    const store = createAppStore();
+    const firstId = store.getState().dataset.id;
+    store.getState().loadUserDataset([5, 3, 8, 1], 'paste', 'Pasted numbers');
+    const { dataset } = store.getState();
+    expect(dataset).toMatchObject({
+      id: firstId + 1,
+      source: 'paste',
+      label: 'Pasted numbers',
+      original: [5, 3, 8, 1],
+    });
+  });
+
+  it('a new dataset or algorithm resets the run to preparing', () => {
+    const store = createAppStore();
+    store.setState({
+      run: { ...store.getState().run, status: 'paused', position: 4, total: 10, comparisons: 3 },
+    });
+    store.getState().generateDataset();
+    expect(store.getState().run).toMatchObject({ status: 'preparing', position: 0, total: 0 });
+
+    store.setState({ run: { ...store.getState().run, status: 'finished', position: 10 } });
+    store.getState().selectAlgorithm('merge');
+    expect(store.getState().algorithmId).toBe('merge');
+    expect(store.getState().run).toMatchObject({ status: 'preparing', position: 0 });
+  });
+
+  it('selecting the algorithm that is already selected changes nothing', () => {
+    const store = createAppStore();
+    store.setState({ run: { ...store.getState().run, status: 'paused', position: 4 } });
+    store.getState().selectAlgorithm('bubble');
+    expect(store.getState().run).toMatchObject({ status: 'paused', position: 4 });
+  });
+
+  it.each([
+    [1, MIN_SPEED],
+    [250, 250],
+    [1_000_000, MAX_SPEED],
+  ])('setSpeed(%d) stores %d', (input, expected) => {
+    const store = createAppStore();
+    store.getState().setSpeed(input);
+    expect(store.getState().speed).toBe(expected);
+  });
+
+  it('announce() sets the text with a fresh seq, even for repeated text', () => {
+    const store = createAppStore();
+    store.getState().announce('Paused.');
+    const first = store.getState().announcement;
+    store.getState().announce('Paused.');
+    const second = store.getState().announcement;
+    expect(first?.text).toBe('Paused.');
+    expect(second?.text).toBe('Paused.');
+    expect(second?.seq).toBeGreaterThan(first?.seq ?? Infinity);
+  });
+});
+
+describe('run lifecycle (T045)', () => {
+  it('prepares steps on creation, then becomes ready with the run length', async () => {
+    const { store, run } = lifecycleStore();
+    expect(run().status).toBe('preparing');
+    await flush();
+    const expected = runAlgorithm('bubble', store.getState().dataset.original).buffer.length;
+    expect(run()).toMatchObject({ status: 'ready', position: 0, total: expected });
+  });
+
+  it('queues Start pressed while preparing and begins when steps arrive', async () => {
+    const { store, run } = lifecycleStore();
+    store.getState().start();
+    expect(store.getState().startQueued).toBe(true);
+    await flush();
+    expect(run().status).toBe('running');
+    expect(store.getState().startQueued).toBe(false);
+    expect(store.player.isPlaying).toBe(true);
+  });
+
+  it('plays, pauses, and resumes; togglePlay switches between them', async () => {
+    const { store, run, tick } = lifecycleStore();
+    await flush();
+    store.getState().setSpeed(1000);
+    store.getState().start();
+    tick(16);
+    expect(run()).toMatchObject({ status: 'running', position: 16 });
+    store.getState().pause();
+    tick(100);
+    expect(run()).toMatchObject({ status: 'paused', position: 16 });
+    store.getState().resume();
+    expect(run().status).toBe('running');
+    store.getState().togglePlay();
+    expect(run().status).toBe('paused');
+    store.getState().togglePlay();
+    expect(run().status).toBe('running');
+  });
+
+  it('forwards speed changes to the player', () => {
+    const { store } = lifecycleStore();
+    store.getState().setSpeed(2500);
+    expect(store.player.speed).toBe(2500);
+  });
+
+  it('steps forward from ready into paused and announces the step', async () => {
+    const { store, run, announced } = lifecycleStore();
+    await flush();
+    store.getState().stepForward();
+    expect(run()).toMatchObject({ status: 'paused', position: 1, comparisons: 1 });
+    expect(announced()).toBe('Comparing positions 1 and 2.');
+    store.getState().stepBack();
+    expect(run()).toMatchObject({ status: 'paused', position: 0, comparisons: 0 });
+    expect(announced()).toBe('Undid: Comparing positions 1 and 2.');
+  });
+
+  it('finishes when Step forward reaches the end, and Step back returns to paused', async () => {
+    const { store, run, announced } = lifecycleStore();
+    await flush();
+    while (canStepForward(run())) store.getState().stepForward();
+    expect(run().status).toBe('finished');
+    expect(run().position).toBe(run().total);
+    expect(announced()).toMatch(/^Sorted with Bubble Sort: [\d,]+ comparisons, [\d,]+ moves\.$/);
+    store.getState().stepBack();
+    expect(run()).toMatchObject({ status: 'paused', position: run().total - 1 });
+  });
+
+  it('finishes when playback reaches the end', async () => {
+    const { store, run, tick } = lifecycleStore();
+    await flush();
+    store.getState().setSpeed(MAX_SPEED);
+    store.getState().start();
+    tick(200);
+    expect(run().status).toBe('finished');
+    expect(run().elapsedMs).toBeGreaterThan(0);
+  });
+
+  it('Reset returns to ready at step 0 with the original order', async () => {
+    const { store, run, tick } = lifecycleStore();
+    await flush();
+    store.getState().setSpeed(1000);
+    store.getState().start();
+    tick(16);
+    store.getState().reset();
+    expect(run()).toMatchObject({ status: 'ready', position: 0, comparisons: 0, elapsedMs: 0 });
+    expect(Array.from(store.player.current)).toEqual(store.getState().dataset.original);
+  });
+
+  it('Start after finishing resets and runs again', async () => {
+    const { store, run, tick } = lifecycleStore();
+    await flush();
+    store.getState().setSpeed(MAX_SPEED);
+    store.getState().start();
+    tick(200);
+    store.getState().start();
+    expect(run()).toMatchObject({ status: 'running', position: 0 });
+  });
+
+  it('a new dataset or algorithm mid-run stops playback and prepares again', async () => {
+    const { store, run, client } = lifecycleStore();
+    await flush();
+    store.getState().start();
+    store.getState().generateDataset();
+    expect(run().status).toBe('preparing');
+    expect(store.player.isPlaying).toBe(false);
+    expect(Array.from(store.player.current)).toEqual(store.getState().dataset.original);
+    await flush();
+    expect(run().status).toBe('ready');
+
+    store.getState().start();
+    store.getState().selectAlgorithm('merge');
+    expect(run().status).toBe('preparing');
+    expect(store.player.isPlaying).toBe(false);
+    await flush();
+    expect(run().total).toBe(
+      runAlgorithm('merge', store.getState().dataset.original).buffer.length,
+    );
+    expect(client.requests).toBe(3);
+  });
+
+  it('shows a prepare error and recovers on retry', async () => {
+    const { store, run, client } = lifecycleStore();
+    client.fail = true;
+    store.getState().retryPrepare();
+    await flush();
+    expect(run()).toMatchObject({ status: 'preparing', prepareError: true });
+    client.fail = false;
+    store.getState().retryPrepare();
+    expect(run().prepareError).toBe(false);
+    await flush();
+    expect(run().status).toBe('ready');
+  });
+
+  it('exposes which controls are enabled (ui-contract.md → Controls)', () => {
+    const base = { position: 0, total: 10, comparisons: 0, moves: 0, elapsedMs: 0 };
+    const at = (
+      status: 'preparing' | 'ready' | 'running' | 'paused' | 'finished',
+      position: number,
+    ) => ({
+      ...base,
+      status,
+      position,
+      prepareError: false,
+    });
+    expect(canStepForward(at('ready', 0))).toBe(true);
+    expect(canStepForward(at('running', 3))).toBe(false);
+    expect(canStepForward(at('paused', 10))).toBe(false);
+    expect(canStepBack(at('paused', 0))).toBe(false);
+    expect(canStepBack(at('finished', 10))).toBe(true);
+    expect(canStepBack(at('running', 5))).toBe(false);
+    expect(canReset(at('running', 5))).toBe(true);
+    expect(canReset(at('ready', 0))).toBe(false);
+    expect(canReset(at('preparing', 0))).toBe(false);
+  });
+
+  it.each([
+    [{ kind: StepKind.Compare, a: 3, b: 4, value: 0 }, 'Comparing positions 4 and 5.'],
+    [{ kind: StepKind.Read, a: 11, b: -1, value: 0 }, 'Reading position 12.'],
+    [{ kind: StepKind.Swap, a: 3, b: 4, value: 0 }, 'Swapped positions 4 and 5.'],
+    [{ kind: StepKind.Write, a: 11, b: -1, value: 37 }, 'Wrote 37 at position 12.'],
+    [{ kind: StepKind.MarkSorted, a: 11, b: -1, value: 0 }, 'Position 12 is in its final place.'],
+  ])('describeStep(%o) → %s', (step, text) => {
+    expect(describeStep(step)).toBe(text);
+  });
+});
+
+describe('run history (T054)', () => {
+  /** Finishes the current run with Step forward. */
+  function finishByStepping(store: ReturnType<typeof lifecycleStore>['store']) {
+    while (canStepForward(store.getState().run)) store.getState().stepForward();
+  }
+
+  it('appends one record when a run finishes', async () => {
+    const { store, run } = lifecycleStore();
+    await flush();
+    finishByStepping(store);
+    const { history, dataset } = store.getState();
+    expect(history).toEqual([
+      {
+        algorithmId: 'bubble',
+        comparisons: run().comparisons,
+        moves: run().moves,
+        elapsedMs: run().elapsedMs,
+        datasetId: dataset.id,
+      },
+    ]);
+  });
+
+  it('records the elapsed running time of a played run', async () => {
+    const { store, tick } = lifecycleStore();
+    await flush();
+    store.getState().setSpeed(MAX_SPEED);
+    store.getState().start();
+    tick(100);
+    expect(store.getState().history).toHaveLength(1);
+    expect(store.getState().history[0]!.elapsedMs).toBeGreaterThan(0);
+  });
+
+  it('does not record twice when stepping back from finished and forward again', async () => {
+    const { store } = lifecycleStore();
+    await flush();
+    finishByStepping(store);
+    store.getState().stepBack();
+    store.getState().stepForward();
+    expect(store.getState().run.status).toBe('finished');
+    expect(store.getState().history).toHaveLength(1);
+  });
+
+  it('records a new run after Reset or Start-from-finished', async () => {
+    const { store, tick } = lifecycleStore();
+    await flush();
+    finishByStepping(store);
+    store.getState().reset();
+    finishByStepping(store);
+    expect(store.getState().history).toHaveLength(2);
+
+    store.getState().setSpeed(MAX_SPEED);
+    store.getState().start();
+    tick(100);
+    expect(store.getState().run.status).toBe('finished');
+    expect(store.getState().history).toHaveLength(3);
+  });
+
+  it('keeps history when the algorithm changes and records the new run', async () => {
+    const { store } = lifecycleStore();
+    await flush();
+    finishByStepping(store);
+    store.getState().selectAlgorithm('merge');
+    await flush();
+    finishByStepping(store);
+    expect(store.getState().history.map((r) => r.algorithmId)).toEqual(['bubble', 'merge']);
+  });
+
+  it('clears history when the dataset changes', async () => {
+    const { store } = lifecycleStore();
+    await flush();
+    finishByStepping(store);
+    store.getState().generateDataset();
+    expect(store.getState().history).toEqual([]);
+
+    await flush();
+    finishByStepping(store);
+    expect(store.getState().history[0]!.datasetId).toBe(store.getState().dataset.id);
+    store.getState().loadUserDataset([3, 1, 2], 'paste', 'Pasted numbers');
+    expect(store.getState().history).toEqual([]);
+  });
+
+  it('switching algorithm while running stops the run and restores the original order', async () => {
+    const { store, tick } = lifecycleStore();
+    await flush();
+    store.getState().setSpeed(1000);
+    store.getState().start();
+    tick(50);
+    expect(Array.from(store.player.current)).not.toEqual(store.getState().dataset.original);
+    store.getState().selectAlgorithm('merge');
+    expect(store.player.isPlaying).toBe(false);
+    expect(Array.from(store.player.current)).toEqual(store.getState().dataset.original);
+    expect(store.getState().history).toEqual([]);
+  });
+});
+
+describe('user datasets (T063)', () => {
+  it('loadUserDataset() replaces the dataset, clears history, and announces it', async () => {
+    const { store } = lifecycleStore();
+    await flush();
+    while (canStepForward(store.getState().run)) store.getState().stepForward();
+    expect(store.getState().history).toHaveLength(1);
+
+    store.getState().loadUserDataset([9, -2.5, 4], 'upload', 'file.csv');
+    const { dataset, history, announcement, run, dataError } = store.getState();
+    expect(dataset).toMatchObject({ source: 'upload', label: 'file.csv', original: [9, -2.5, 4] });
+    expect(history).toEqual([]);
+    expect(run.status).toBe('preparing');
+    expect(dataError).toBeNull();
+    expect(announcement?.text).toBe('Loaded 3 values from file.csv.');
+    await flush();
+    expect(store.getState().run.status).toBe('ready');
+  });
+
+  it('switches to Bubble Sort when the selected algorithm cannot sort the data', async () => {
+    const { store } = lifecycleStore();
+    store.getState().selectAlgorithm('radix-lsd');
+    store.getState().loadUserDataset([1.5, 2, 3], 'paste', 'Pasted numbers');
+    const { algorithmId, announcement, algorithmNotice } = store.getState();
+    const why =
+      "Radix Sort (LSD) can't sort this data (Needs whole numbers). Switched to Bubble Sort.";
+    expect(algorithmId).toBe('bubble');
+    expect(announcement?.text).toBe(`Loaded 3 values from Pasted numbers. ${why}`);
+    expect(algorithmNotice).toBe(why);
+    await flush();
+    expect(store.getState().run.total).toBe(runAlgorithm('bubble', [1.5, 2, 3]).buffer.length);
+  });
+
+  it('keeps a selected algorithm that can sort the data, and clears an old notice', () => {
+    const { store } = lifecycleStore();
+    store.getState().selectAlgorithm('counting');
+    store.getState().loadUserDataset([0.5, 1], 'paste', 'Pasted numbers');
+    expect(store.getState().algorithmNotice).not.toBeNull();
+    store.getState().selectAlgorithm('merge');
+    expect(store.getState().algorithmNotice).toBeNull();
+    store.getState().loadUserDataset([3, -1, 2], 'paste', 'Pasted numbers');
+    expect(store.getState().algorithmId).toBe('merge');
+    expect(store.getState().algorithmNotice).toBeNull();
+  });
+
+  it('setDataError() shows and announces the message without touching the dataset', () => {
+    const { store } = lifecycleStore();
+    const before = store.getState().dataset;
+    store.getState().setDataError('This file is larger than 1 MB.');
+    expect(store.getState().dataError).toBe('This file is larger than 1 MB.');
+    expect(store.getState().announcement?.text).toBe('This file is larger than 1 MB.');
+    expect(store.getState().dataset).toBe(before);
+    store.getState().generateDataset();
+    expect(store.getState().dataError).toBeNull();
+  });
+});
+
+describe('sound (T078, T079)', () => {
+  it('enableSound() turns audio on, unmutes, and answers the prompt', () => {
+    const { store, sound } = lifecycleStore();
+    store.getState().enableSound();
+    expect(sound.enable).toHaveBeenCalledOnce();
+    expect(sound.setMuted).toHaveBeenLastCalledWith(false);
+    expect(store.getState()).toMatchObject({ muted: false, soundPromptAnswered: true });
+  });
+
+  it('dismissSoundPrompt() answers the prompt and stays muted', () => {
+    const { store, sound } = lifecycleStore();
+    store.getState().dismissSoundPrompt();
+    expect(sound.enable).not.toHaveBeenCalled();
+    expect(store.getState()).toMatchObject({ muted: true, soundPromptAnswered: true });
+  });
+
+  it('toggleMute() and setVolume() reach the sound engine immediately', () => {
+    const { store, sound } = lifecycleStore();
+    store.getState().toggleMute();
+    expect(sound.enable).toHaveBeenCalledOnce();
+    expect(sound.setMuted).toHaveBeenLastCalledWith(false);
+    store.getState().toggleMute();
+    expect(sound.setMuted).toHaveBeenLastCalledWith(true);
+    expect(store.getState().muted).toBe(true);
+    store.getState().setVolume(0.25);
+    expect(sound.setVolume).toHaveBeenLastCalledWith(0.25);
+    store.getState().setVolume(4);
+    expect(store.getState().volume).toBe(1);
+  });
+
+  it('plays one tone per frame at the value of the latest step', async () => {
+    const { store, sound, tick } = lifecycleStore();
+    await flush();
+    store.getState().enableSound();
+    store.getState().setSpeed(1000);
+    store.getState().start();
+    tick(16);
+    const { min, max } = store.getState().dataset;
+    const { a } = store.player.highlight!;
+    expect(sound.beginFrame).toHaveBeenCalledOnce();
+    expect(sound.playStep).toHaveBeenCalledExactlyOnceWith(store.player.current[a], min, max);
+    tick(16);
+    expect(sound.playStep).toHaveBeenCalledTimes(2);
+  });
+
+  it('plays a tone for each manual step (FR-012a)', async () => {
+    const { store, sound } = lifecycleStore();
+    await flush();
+    store.getState().enableSound();
+    store.getState().stepForward();
+    store.getState().stepForward();
+    store.getState().stepBack();
+    expect(sound.beginFrame).toHaveBeenCalledTimes(3);
+    expect(sound.playStep).toHaveBeenCalledTimes(3);
+  });
+
+  it('plays no tones while muted', async () => {
+    const { store, sound, tick } = lifecycleStore();
+    await flush();
+    store.getState().start();
+    tick(100);
+    store.getState().pause();
+    store.getState().stepForward();
+    expect(sound.playStep).not.toHaveBeenCalled();
+  });
+
+  it('plays the completion sweep over the sorted values when a run finishes', async () => {
+    const { store, sound, run } = lifecycleStore();
+    await flush();
+    store.getState().enableSound();
+    while (canStepForward(run())) store.getState().stepForward();
+    expect(sound.playCompletionSweep).toHaveBeenCalledOnce();
+    const sorted = [...store.getState().dataset.original].sort((x, y) => x - y);
+    expect(Array.from(sound.playCompletionSweep.mock.calls[0]![0] as Float64Array)).toEqual(sorted);
+  });
+
+  it('skips the completion sweep while muted', async () => {
+    const { store, sound, run } = lifecycleStore();
+    await flush();
+    while (canStepForward(run())) store.getState().stepForward();
+    expect(sound.playCompletionSweep).not.toHaveBeenCalled();
+  });
+
+  it('wakes audio on Start when sound was left on from an earlier visit', async () => {
+    const { store, sound } = lifecycleStore();
+    store.getState().enableSound();
+    sound.enable.mockClear();
+    const next = lifecycleStore();
+    await flush();
+    expect(next.store.getState().muted).toBe(false);
+    expect(next.sound.enable).not.toHaveBeenCalled();
+    next.store.getState().start();
+    expect(next.sound.enable).toHaveBeenCalled();
+    expect(sound.enable).not.toHaveBeenCalled();
+  });
+});
