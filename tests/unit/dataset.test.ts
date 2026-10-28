@@ -8,17 +8,7 @@ import {
   randomValues,
   SIZE_STEP,
 } from '../../src/dataset/random';
-
-/** Small deterministic RNG (mulberry32) so tests can check reproducibility. */
-function seeded(seed: number): () => number {
-  let t = seed;
-  return () => {
-    t = (t + 0x6d2b79f5) | 0;
-    let x = Math.imul(t ^ (t >>> 15), 1 | t);
-    x = (x + Math.imul(x ^ (x >>> 7), 61 | x)) ^ x;
-    return ((x ^ (x >>> 14)) >>> 0) / 4294967296;
-  };
-}
+import { seeded } from '../seeded';
 
 describe('createDataset', () => {
   it.each([

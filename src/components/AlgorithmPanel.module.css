@@ -1,0 +1,43 @@
+.picker {
+  display: grid;
+  gap: var(--space-1);
+  font-size: var(--font-size-small);
+}
+
+.select {
+  width: 100%;
+  min-height: 2.5rem;
+  padding: var(--space-2);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  background: var(--color-surface);
+  font-size: var(--font-size-base);
+}
+
+.info {
+  display: grid;
+  gap: var(--space-3);
+  margin-top: var(--space-3);
+  font-size: var(--font-size-small);
+}
+
+.complexity {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.complexity li {
+  display: grid;
+}
+
+.complexityLabel {
+  color: var(--color-text-muted);
+}
+
+.complexityValue {
+  font-family: var(--font-mono);
+}

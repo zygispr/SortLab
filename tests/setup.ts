@@ -1,4 +1,6 @@
 import '@testing-library/jest-dom/vitest';
+import { runAlgorithm } from '../src/algorithms/registry';
+import type { GenerateRequest, WorkerResponse } from '../src/engine/stepsClient';
 
 /** One call made on the fake canvas 2D context. */
 export interface RecordedCall {
@@ -85,6 +87,34 @@ if (typeof (window as Partial<Window>).matchMedia !== 'function') {
         removeEventListener: () => undefined,
         dispatchEvent: () => false,
       }) as Partial<MediaQueryList> as MediaQueryList,
+  });
+}
+
+// jsdom has no Worker. This stand-in answers step requests with the real runAlgorithm on
+// a later task, like the real worker, so components can be tested against real steps.
+class StepWorkerStub {
+  onmessage: ((e: MessageEvent<WorkerResponse>) => void) | null = null;
+  onerror: ((e: ErrorEvent) => void) | null = null;
+
+  postMessage({ requestId, algorithmId, values }: GenerateRequest): void {
+    setTimeout(() => {
+      const steps = runAlgorithm(algorithmId, values).buffer.toTransfer();
+      this.onmessage?.({
+        data: { type: 'done', requestId, steps },
+      } as MessageEvent<WorkerResponse>);
+    }, 0);
+  }
+
+  terminate(): void {
+    this.onmessage = null;
+  }
+}
+
+if (typeof (globalThis as Partial<typeof globalThis>).Worker !== 'function') {
+  Object.defineProperty(globalThis, 'Worker', {
+    configurable: true,
+    writable: true,
+    value: StepWorkerStub,
   });
 }
 

@@ -1,0 +1,23 @@
+.counters {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(7rem, 1fr));
+  gap: var(--space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.counters li {
+  display: grid;
+}
+
+.label {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-small);
+}
+
+.value {
+  font-size: var(--font-size-heading);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}

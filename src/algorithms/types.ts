@@ -27,7 +27,11 @@ export type Support = { ok: true } | { ok: false; reason: string };
 export interface StepRecorder {
   /** Number of values being sorted. */
   readonly length: number;
-  /** Read-only view of the working copy. Algorithms must use `read`/`compare` instead. */
+  /**
+   * Read-only view of the working copy. Algorithms may read it only to copy a value they
+   * are about to place with `write` (data movement is already counted as a move); every
+   * decision must use `read` or `compare` so it is shown and counted as a comparison.
+   */
   readonly values: ArrayLike<number>;
   /** Records a comparison of positions `i` and `j`; returns `sign(values[i] − values[j])`. */
   compare(i: number, j: number): number;
