@@ -66,14 +66,14 @@ level name (`atoms/`, `molecules/`, `organisms/`, `templates/`, `pages/`) are re
 
 **Purpose**: Branch, measure the starting point on unchanged code, and add the tools
 
-- [ ] T001 Create the feature branch from an up-to-date `main` with `git switch main && git pull && git switch -c 003-scss-styling`, and confirm `git status` is clean
-- [ ] T002 Record the baseline before any file changes (quickstart §1):
+- [X] T001 Create the feature branch from an up-to-date `main` with `git switch main && git pull && git switch -c 003-scss-styling`, and confirm `git status` is clean
+- [X] T002 Record the baseline before any file changes (quickstart §1):
   - Run `npm ci && npm run build`.
   - Replace the placeholder in the "Measured results" section of `specs/003-scss-styling/quickstart.md` with a "Before" table. It needs the commit (`git rev-parse --short HEAD`), the raw bytes (`wc -c`) and gzip bytes (`gzip -9 -c <file> | wc -c`) of each `dist/assets/*.js` and `dist/assets/index-*.css`, and the total gzip of JS + CSS.
   - Save the normalized CSS with `npx prettier --parser css < dist/assets/index-*.css | sed -E 's/\._([A-Za-z]+)_[a-z0-9]{5}_[0-9]+/.\1/g' > "$TMPDIR/sortlab-css-before.css"`.
   - Open the saved file and confirm the class names read `.button`, `.primary`, and so on, with no hashes left.
-- [ ] T003 Add the dev dependencies with `npm install --save-dev sass@1.105.2 stylelint@17.16.0 postcss-scss@4.0.9` (research R1, R5). Confirm `package.json` lists `"sass": "^1.105.2"`, `"stylelint": "^17.16.0"`, and `"postcss-scss": "^4.0.9"` under `devDependencies`, and that `package-lock.json` resolves exactly those three versions. Then run `npm run build` and confirm it still succeeds with no `.scss` file present
-- [ ] T004 Create `stylelint.config.js` at the repo root exactly as in [contract §3](./contracts/style-rules.md#3-quality-checks): `export default { customSyntax: 'postcss-scss', rules: { 'max-nesting-depth': 2 } };`.
+- [X] T003 Add the dev dependencies with `npm install --save-dev sass@1.105.2 stylelint@17.16.0 postcss-scss@4.0.9` (research R1, R5). Confirm `package.json` lists `"sass": "^1.105.2"`, `"stylelint": "^17.16.0"`, and `"postcss-scss": "^4.0.9"` under `devDependencies`, and that `package-lock.json` resolves exactly those three versions. Then run `npm run build` and confirm it still succeeds with no `.scss` file present
+- [X] T004 Create `stylelint.config.js` at the repo root exactly as in [contract §3](./contracts/style-rules.md#3-quality-checks): `export default { customSyntax: 'postcss-scss', rules: { 'max-nesting-depth': 2 } };`.
   - Add a header comment: "Nesting limit for SCSS (feature 003, FR-004): a top-level rule plus two nested levels. Only this rule is enabled; see specs/003-scss-styling/research.md R5."
   - In `package.json`, change the `lint` script to `eslint . --max-warnings 0 && stylelint "src/**/*.scss" --max-warnings 0 --allow-empty-input`. The `--allow-empty-input` flag lets lint pass while no `.scss` exists yet.
   - Run `npm run lint` and confirm it passes (depends on T003).
@@ -90,12 +90,12 @@ out.
 
 ### Tests ⚠️ write first, confirm they fail
 
-- [ ] T005 [P] Add a test to `tests/integration/atoms/Button.test.tsx`, without changing the existing tests, in a new `describe('buttonClass')`:
+- [X] T005 [P] Add a test to `tests/integration/atoms/Button.test.tsx`, without changing the existing tests, in a new `describe('buttonClass')`:
   - It imports `{ Button, buttonClass }` from `../../../src/components/atoms/Button`.
   - It renders `<Button>Default</Button>`, `<Button variant="primary">Primary</Button>`, and `<Button variant="quiet">Quiet</Button>`.
   - It expects `buttonClass()` to equal the Default button's `className`, `buttonClass('secondary')` to equal it too, `buttonClass('primary')` to equal the Primary button's `className`, and `buttonClass('quiet')` to equal the Quiet button's `className`.
   - It fails today because `buttonClass` is not exported.
-- [ ] T006 [P] Create `tests/unit/styleRules.test.ts`, which runs in the **default jsdom environment** with no `@vitest-environment` comment. `tests/setup.ts` cannot load under `node`; Stylelint's Node API was verified to work under jsdom. Start the file with a doc comment: "Style authoring rules (feature 003, FR-004, FR-010, SC-008, research R3): see specs/003-scss-styling/contracts/style-rules.md §3." Add two `describe` blocks:
+- [X] T006 [P] Create `tests/unit/styleRules.test.ts`, which runs in the **default jsdom environment** with no `@vitest-environment` comment. `tests/setup.ts` cannot load under `node`; Stylelint's Node API was verified to work under jsdom. Start the file with a doc comment: "Style authoring rules (feature 003, FR-004, FR-010, SC-008, research R3): see specs/003-scss-styling/contracts/style-rules.md §3." Add two `describe` blocks:
   - **`describe('nesting depth')`** imports `stylelint` from `'stylelint'` and lints in-memory samples with `stylelint.lint({ code, codeFilename: 'src/components/atoms/Sample.module.scss', configFile: 'stylelint.config.js' })`. It checks the real config.
     - A 4-level sample `.a {\n  .b {\n    .c {\n      .d {\n        color: red;\n      }\n    }\n  }\n}\n` gives exactly one warning, with `rule === 'max-nesting-depth'` and `line === 4`.
     - A 3-level sample `.table {\n  th,\n  td {\n    &:first-child {\n      padding-left: 0;\n    }\n  }\n}\n` gives no warnings.
@@ -106,7 +106,7 @@ out.
 
 ### Implementation
 
-- [ ] T007 Remove the cross-file `composes` (research R3), making T005 and T006 pass:
+- [X] T007 Remove the cross-file `composes` (research R3), making T005 and T006 pass:
   - **`atoms/Button.tsx`**: export `buttonClass(variant: ButtonVariant = 'secondary'): string`, which returns `VARIANT_CLASS[variant]`. Extract `type ButtonVariant = 'primary' | 'secondary' | 'quiet'` and use it in `ButtonProps['variant']`. Make `Button` call `buttonClass(variant)` instead of indexing `VARIANT_CLASS`. Give `buttonClass` TSDoc: "The class that gives an element the look of the given button variant, for an element that must not be a `<button>` (the file picker's label). The Button atom stays the one place buttons are styled."
   - **`molecules/FileButton.tsx`**: import `{ buttonClass }` from `'../atoms/Button'` and change the label to `className={buttonClass()}`. Add a short comment: "The secondary button look comes from the Button atom, the one place buttons are styled."
   - **`molecules/FileButton.module.css`**: delete the `.label` rule and its comment.

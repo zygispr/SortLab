@@ -44,8 +44,9 @@ justified below. Details are in [research.md](./research.md).
 **Primary Dependencies**:
 
 - Runtime, unchanged: React 19.3, Zustand 5.0.
-- Build: Vite 8.3, which compiles SCSS natively once `sass` is installed, so
-  `vite.config.ts` does not change.
+- Build: Vite 8.3, which compiles SCSS natively once `sass` is installed, so the build
+  part of `vite.config.ts` does not change. The one addition is the test-only
+  `test.css.include` for `?raw` requests ([research R6](./research.md#r6-rejecting-plain-stylesheets-a-vitest-glob-test)).
 - New dev dependencies: `sass@^1.105.2`, `stylelint@^17.16.0`, `postcss-scss@^4.0.9`.
 - Existing tooling: ESLint 10.13, Prettier 3.9, which formats SCSS natively.
 

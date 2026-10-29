@@ -126,6 +126,17 @@ scratch folder with the exact tool versions below; it is not part of the reposit
   `tests/unit/boundaries.test.ts`. The same file runs Stylelint's Node API on in-memory
   samples to prove that the depth rule fires and passes as intended (SC-008), as
   `boundaries.test.ts` does for ESLint.
+- **Found during T006**: Vitest's CSS plugin (`vitest:css-disable` and
+  `vitest:css-empty-post`) blanks **every** stylesheet request, `?raw` included. Plain
+  stylesheets become `""` and CSS modules become a class-name `Proxy`, so the scan saw no
+  text and failed with `Cannot convert a Symbol value to a string`. The fix is one
+  test-only option in `vite.config.ts`, `test.css.include: [/[?&]raw(&|$)/]`, which hands
+  `?raw` requests back to Vite's own raw loader. Normal stylesheet imports in component
+  tests are still blanked or proxied, so class names in those tests do not change
+  (the full suite passed unchanged). Reading files with `node:fs` was rejected because
+  the project has no `@types/node` (as in feature 002). Moving the checks into
+  Stylelint rules was rejected because T017's "only in `_shared.scss`" check needs file
+  text.
 - **Alternatives considered**: An ESLint `no-restricted-imports` pattern on `\.css$`
   would only catch imported files and would collide with the per-level
   `no-restricted-imports` entries in `eslint.boundaries.js` (flat config keeps only the

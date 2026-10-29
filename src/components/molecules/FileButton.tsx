@@ -1,4 +1,5 @@
 import { useId } from 'react';
+import { buttonClass } from '../atoms/Button';
 import styles from './FileButton.module.css';
 
 interface FileButtonProps {
@@ -36,7 +37,8 @@ export function FileButton({ label, accept, onFile }: FileButtonProps) {
           onChange(e.currentTarget);
         }}
       />
-      <label htmlFor={id} className={styles.label}>
+      {/* The secondary button look comes from the Button atom, the one place buttons are styled. */}
+      <label htmlFor={id} className={buttonClass()}>
         {label}
       </label>
     </div>

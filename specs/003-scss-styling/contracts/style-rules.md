@@ -87,7 +87,7 @@ The test:
 
 - reads the real config with `stylelint.lint({ code, codeFilename, configFile: 'stylelint.config.js' })`, so it needs no import or `.d.ts`
 - uses `import.meta.glob` keys for the file list
-- uses `import.meta.glob<string>('/src/**/*.scss', { query: '?raw', import: 'default', eager: true })` for the `composes` scan
+- uses `import.meta.glob<string>('/src/**/*.{css,scss}', { query: '?raw', import: 'default', eager: true })` for the `composes` scan. This works only because `vite.config.ts` sets `test.css.include: [/[?&]raw(&|$)/]`; without it, Vitest blanks stylesheet sources (research R6).
 
 ## 4. Compiled output
 

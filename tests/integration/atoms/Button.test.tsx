@@ -1,6 +1,6 @@
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { Button } from '../../../src/components/atoms/Button';
+import { Button, buttonClass } from '../../../src/components/atoms/Button';
 
 /** The button atom, rendered from props alone (feature 002, FR-007, FR-016). */
 
@@ -59,5 +59,23 @@ describe('Button', () => {
     const button = screen.getByRole('button', { name: 'Start' });
     expect(button).toHaveClass('extra');
     expect(button.classList.length).toBeGreaterThan(1);
+  });
+});
+
+/** The variant class lookup, for elements that look like a button but are not one (feature 003, research R3). */
+describe('buttonClass', () => {
+  it('returns the class each variant renders with, secondary by default', () => {
+    render(
+      <>
+        <Button>Default</Button>
+        <Button variant="primary">Primary</Button>
+        <Button variant="quiet">Quiet</Button>
+      </>,
+    );
+    const classOf = (name: string) => screen.getByRole('button', { name }).className;
+    expect(buttonClass()).toBe(classOf('Default'));
+    expect(buttonClass('secondary')).toBe(classOf('Default'));
+    expect(buttonClass('primary')).toBe(classOf('Primary'));
+    expect(buttonClass('quiet')).toBe(classOf('Quiet'));
   });
 });
