@@ -1,0 +1,141 @@
+# Quickstart & Validation Guide: SCSS Styling
+
+**Feature**: [spec.md](./spec.md) | **Plan**: [plan.md](./plan.md)
+
+This guide shows how to prove that every stylesheet is SCSS, that it reads as intended,
+and that nothing changed for end users. Setup and the full quality gates are the same as
+in [feature 001's quickstart](../001-sorting-visualizer/quickstart.md#setup-and-run). The
+visual references from feature 002 are reused as they are and are **not** re-captured.
+
+## 1. Before converting anything: record the baseline
+
+On the feature branch, before any stylesheet changes:
+
+```bash
+npm ci && npm run build
+for f in dist/assets/index-*.css; do wc -c < "$f"; gzip -9 -c "$f" | wc -c; done
+npx prettier --parser css < dist/assets/index-*.css \
+  | sed -E 's/\._([A-Za-z]+)_[a-z0-9]{5}_[0-9]+/.\1/g' > "$TMPDIR/sortlab-css-before.css"
+```
+
+**Expect**: the raw and gzip byte counts of the CSS chunk. Record them in
+[Measured results](#measured-results); the last `dist/` measured 8,022 B raw and
+2,353 B gzip. You also get a readable copy of the shipped CSS in which each hashed class
+is replaced by its local name.
+
+**If the "before" file is gone** (`$TMPDIR` can be cleared by a reboot or a new
+session), rebuild it from the baseline commit recorded in Measured results, without
+touching your working tree:
+
+```bash
+git worktree add "$TMPDIR/sortlab-baseline" <baseline-commit>
+(cd "$TMPDIR/sortlab-baseline" && npm ci >&2 && npm run build >&2 \
+  && npx prettier --parser css < dist/assets/index-*.css \
+  | sed -E 's/\._([A-Za-z]+)_[a-z0-9]{5}_[0-9]+/.\1/g') > "$TMPDIR/sortlab-css-before.css"
+git worktree remove --force "$TMPDIR/sortlab-baseline"
+```
+
+## 2. After the conversion
+
+### Story 1 – every stylesheet is SCSS and reads as one block
+
+```bash
+find src -name '*.css'                       # nothing
+find src -name '*.scss' | wc -l              # 20 (19 converted + _shared.scss)
+npm run lint && npm run format:check && npm run typecheck
+npm test                                     # includes tests/unit/styleRules.test.ts
+npx playwright test --project=chromium --project=webkit --project=phone
+```
+
+**Expect**:
+
+- No `.css` files and 20 `.scss` files.
+- Lint (ESLint, then Stylelint), format, and type checks pass with zero warnings.
+- All unit, component, and e2e tests pass, including `visual.spec.ts` with 0 differing
+  pixels in all 8 images (SC-002).
+- `git status tests/e2e/visual.spec.ts-snapshots` shows nothing: the references are
+  unchanged (FR-014).
+- CI runs the same checks on Linux, including Firefox.
+
+Readability (SC-004, SC-006): open `atoms/Button.module.scss`,
+`templates/PageLayout.module.scss`, and `organisms/RunSummary.module.scss`. Each element
+has a single top-level rule that contains its states and its `@media` change. A reviewer
+picks three elements at random, for example the Pause button, the summary row on wide
+screens, and the first table column. For each one, every rule that affects it is in one
+block, found within 30 seconds.
+
+### Story 2 – shared values and patterns
+
+```bash
+grep -rn "1024px" src                                    # only styles/_shared.scss
+grep -rnE "list-style: none|border: 1px solid var\(--color-border\)" src/components
+grep -rn "@include shared\." src | wc -l                 # 12 (one per use in data-model.md)
+```
+
+**Expect**:
+
+- The breakpoint is defined once (SC-005).
+- The second grep finds nothing, because the `bare-list` and `bordered-surface`
+  declarations now exist only in `_shared.scss`.
+- There are 12 includes: `bordered-surface` 4, `bare-list` 3, `wrap-row` 3,
+  `focus-ring` 2.
+
+Compare the result against the inventory in
+[data-model.md](./data-model.md#inventory).
+
+### Story 3 – the rules are enforced (SC-008)
+
+1. Create `src/components/atoms/Stray.css` containing `.x {}` and run `npm test`.
+   **Expect**: `no plain stylesheets` fails and names `/src/components/atoms/Stray.css`.
+   Delete the file.
+2. In `organisms/RunSummary.module.scss`, nest `span { color: red; }` inside the
+   `&:first-child` block (4 levels) and run `npm run lint`. **Expect**: one Stylelint
+   error, `Too deep nesting, maximum 2`, with the file name and line. Undo the change.
+3. In `molecules/FileButton.module.scss`, add
+   `.x { composes: button from '../atoms/Button.module.scss'; }` and run `npm test`.
+   **Expect**: `no cross-file composes` fails and names the file. Undo the change.
+4. Add two spaces of indentation to any `.scss` line and run `npm run format:check`.
+   **Expect**: Prettier names the file. Run `npm run format` to fix it.
+
+`npm run lint` and `npm run format:check` pass again afterwards.
+`tests/unit/styleRules.test.ts` checks items 1–3 automatically.
+
+## 3. Compiled-CSS equivalence review
+
+This review covers the states the screenshots cannot reach: hover, disabled,
+`aria-invalid`, reduced motion, and wide-screen rules at other widths.
+
+```bash
+npm run build
+npx prettier --parser css < dist/assets/index-*.css \
+  | sed -E 's/\._([A-Za-z]+)_[a-z0-9]{5}_[0-9]+/.\1/g' > "$TMPDIR/sortlab-css-after.css"
+diff -u "$TMPDIR/sortlab-css-before.css" "$TMPDIR/sortlab-css-after.css"
+```
+
+**Expect**: every difference is one of these, from
+[research R8](./research.md#r8-proving-no-visible-change):
+
+- dropped comments
+- FileButton's empty `.label` rule removed
+- PageLayout's `@media (min-width: 1024px)` split into one block after `.main` and one
+  after `.summary`
+- the reduced-motion block moved next to the box-sizing rule
+- declarations reordered inside `.panel` (Region), where none of the reordered
+  declarations set the same property
+
+Any changed selector, value, or `!important`, or any added or removed declaration, is a
+defect. Record the reviewed diff summary in [Measured results](#measured-results).
+
+## 4. Performance (FR-016, SC-007)
+
+| Check | How | Target |
+|-------|-----|--------|
+| Shipped styles | Raw and gzip bytes of `dist/assets/index-*.css` vs §1 | grows ≤ 5% |
+| Total bundle | gzip JS + CSS vs §1 (method in [feature 002's results](../002-atomic-design-components/quickstart.md#measured-results)) | JS differs only in the hashed class-name strings (a few bytes); worker chunk byte-identical |
+| Frame rate and response | Feature 001 quickstart → Performance checks, frame-rate and Pause rows | no frames > 50 ms, response < 100 ms |
+| Load | Lighthouse mobile preset | interactive < 2 s |
+
+## Measured results
+
+_To be filled during implementation: the baseline from §1, the after sizes, the §3 diff
+summary, and the performance rows._
