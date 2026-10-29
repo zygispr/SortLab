@@ -258,7 +258,7 @@ how styles are organized. The depth rule and `composes` check were built in Phas
 
 ### Implementation for User Story 3
 
-- [ ] T022 [US3] Document the styles in `README.md` ([contract §5](./contracts/style-rules.md#5-readme-section)):
+- [X] T022 [US3] Document the styles in `README.md` ([contract §5](./contracts/style-rules.md#5-readme-section)):
   - Add a "## Styles" section after "## Component structure". It covers:
     - the files: one `.module.scss` per component, plus `tokens.scss`, `global.scss`, and `_shared.scss` in `src/styles/`
     - a table of the shared items (name, purpose, usage)
@@ -267,7 +267,7 @@ how styles are organized. The depth rule and `composes` check were built in Phas
     - the 3-level nesting limit, checked by `npm run lint`
   - In "Component structure", change "its CSS module" to "its CSS module (`.module.scss`)".
   - In "Quality gates", change the `npm run lint` comment to `# ESLint + Stylelint, zero errors`.
-- [ ] T023 [US3] Prove the checks on real files (quickstart → Story 3, SC-008). Do each of these and then undo it:
+- [X] T023 [US3] Prove the checks on real files (quickstart → Story 3, SC-008). Do each of these and then undo it:
   1. Create `src/components/atoms/Stray.css` containing `.x {}`. `npm test` fails `no plain stylesheets`, naming it.
   2. Nest `span { color: red; }` inside the `&:first-child` block of `organisms/RunSummary.module.scss`. `npm run lint` reports one `max-nesting-depth` error with the file and line.
   3. Add `.x { composes: button from '../atoms/Button.module.scss'; }` to `molecules/FileButton.module.scss`. `npm test` fails `no cross-file composes`, naming it.

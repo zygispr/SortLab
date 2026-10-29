@@ -189,4 +189,19 @@ exactly the declarations they replaced.
 | `grep -rn "@include shared\." src \| wc -l` | 12 (`bordered-surface` 4, `bare-list` 3, `wrap-row` 3, `focus-ring` 2) |
 | Gates | Lint, format, and typecheck pass; 576/576 unit and component tests; 61 e2e pass on chromium, webkit, and phone (17 skipped); visual check 0 differing pixels; references unchanged |
 
-_Still to fill: the after sizes, the Story 3 results, and the performance rows._
+### Story 3 checks on real files (T023), 2026-10-29
+
+Each violation was made, checked, and undone. `git status` showed no leftover change
+afterwards.
+
+| # | Violation | Command | Result |
+|---|-----------|---------|--------|
+| 1 | `src/components/atoms/Stray.css` containing `.x {}` | `npm test` | `no plain stylesheets` fails: `Plain stylesheets are not allowed (feature 003, FR-001); rename to .scss:` with `/src/components/atoms/Stray.css`. No other test fails |
+| 2 | `span { color: red; }` nested inside `&:first-child` in `organisms/RunSummary.module.scss` (4 levels) | `npm run lint` | One error: `src/components/organisms/RunSummary.module.scss` `21:7 ✖ Too deep nesting, maximum 2  max-nesting-depth` |
+| 3 | `.x { composes: button from '../atoms/Button.module.scss'; }` in `molecules/FileButton.module.scss` | `npm test` | `no cross-file composes` fails: `composes from another file ships uncompiled SCSS …` with `/src/components/molecules/FileButton.module.scss` |
+| 4 | Two extra spaces before `width: 100%;` in `atoms/Slider.module.scss` | `npm run format:check`, then `npm run format` | `[warn] src/components/atoms/Slider.module.scss`; `npm run format` restored the file byte for byte |
+
+SC-008: **pass**. Each check fails on its violation, names the file, and passes again
+once the violation is removed.
+
+_Still to fill: the after sizes and the performance rows._
