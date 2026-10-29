@@ -71,7 +71,7 @@ interface Colors {
   sorted: string[];
 }
 
-/** Reads the theme tokens from tokens.css, with light-theme fallbacks. */
+/** Reads the theme tokens from tokens.scss, with light-theme fallbacks. */
 function readColors(): Colors {
   const style = getComputedStyle(document.documentElement);
   const token = (name: string, fallback: string) => style.getPropertyValue(name).trim() || fallback;

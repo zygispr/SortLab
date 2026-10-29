@@ -1,8 +1,7 @@
+@use '../../styles/shared';
+
 .prompt {
-  display: inline-flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: var(--space-2);
+  @include shared.wrap-row(inline-flex);
 }
 
 .controls {

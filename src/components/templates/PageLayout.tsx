@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import styles from './PageLayout.module.css';
+import styles from './PageLayout.module.scss';
 
 interface PageLayoutProps {
   /** The `<h1>` in the page header. */

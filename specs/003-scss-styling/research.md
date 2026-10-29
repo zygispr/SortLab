@@ -169,6 +169,20 @@ scratch folder with the exact tool versions below; it is not part of the reposit
     rule still follows its base rule.
   - Order may change between rules whose selectors match different elements.
   - FileButton's `.label` class disappears (R3).
+- **Found in the T016 review**:
+  - **Sass rewrites `hsl()` of `var()` values.** `hsl(var(--h) var(--s) var(--l))`
+    compiles to the comma form `hsl(var(--h), var(--s), var(--l))`, also inside
+    `linear-gradient()` and with an alpha value. The color is the same, but the value
+    text changed, so it counts as a defect. Interpolating the arguments,
+    `hsl(#{var(--h) var(--s) var(--l)})`, keeps the CSS exactly as written. Legend's
+    four gradient stops use this, with a comment explaining it
+    ([contract §2 rule 8](./contracts/style-rules.md#2-authoring-rules)).
+  - **The Button atom's rules moved earlier in the bundle.** Since T007, FileButton
+    imports `atoms/Button`, so `Button.module.scss` is loaded earlier. Its rules now sit
+    before `.muted`, `.panel`, `.divider`, `.field`, `.fieldHeader`, `.error`,
+    `.textarea`, `.slider`, and `.fieldValue`. None of those classes is applied to a
+    button or to FileButton's label (no `<Button>` passes a `className`), so this is an
+    allowed reordering of rules that match different elements.
 - **Rationale**: Pixels prove the reference states. The selector-level diff proves every
   other state without adding new screenshots, which would be costly in CI time and
   reference maintenance.

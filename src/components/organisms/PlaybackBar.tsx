@@ -1,7 +1,7 @@
 import { canReset, canStepBack, canStepForward, useAppStore } from '../../store/appStore';
 import { Button } from '../atoms/Button';
 import { MutedText } from '../atoms/MutedText';
-import styles from './PlaybackBar.module.css';
+import styles from './PlaybackBar.module.scss';
 import { SoundPrompt } from './SoundPrompt';
 import { SpeedSlider } from './SpeedSlider';
 

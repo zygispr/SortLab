@@ -54,6 +54,9 @@ Each item has a one-line `///` comment saying what it is for and where it is use
    example `buttonClass()` from the Button atom). Do not import its stylesheet.
 7. A group of three or more declarations used in three or more places becomes a mixin in
    `_shared.scss`. Fewer repeats stay inline.
+8. When `hsl()`, `rgb()`, or a similar color function takes `var()` arguments, interpolate
+   them: `hsl(#{var(--h) var(--s) var(--l)})`. Without interpolation, Sass rewrites the
+   space-separated syntax into the comma form (research R8).
 
 ## 3. Quality checks
 

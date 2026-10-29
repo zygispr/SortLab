@@ -3,7 +3,7 @@ import { parseDataset } from '../../dataset/parse';
 import { useAppStore } from '../../store/appStore';
 import { Button } from '../atoms/Button';
 import { TextArea } from '../atoms/TextArea';
-import styles from './DataPanel.module.css';
+import styles from './DataPanel.module.scss';
 
 interface PasteInputProps {
   /** Id of the data error message, linked to the text box while an error is shown. */

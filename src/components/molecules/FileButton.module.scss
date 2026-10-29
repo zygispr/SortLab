@@ -1,0 +1,17 @@
+@use '../../styles/shared';
+
+.upload {
+  display: grid;
+
+  label {
+    text-align: center;
+  }
+}
+
+.fileInput {
+  // The real file input is visually hidden, so show its focus on the label that looks like
+  // the button.
+  &:focus-visible + label {
+    @include shared.focus-ring;
+  }
+}

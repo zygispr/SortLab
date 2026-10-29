@@ -2,7 +2,7 @@ import { useAppStore } from '../../store/appStore';
 import { Button } from '../atoms/Button';
 import { MutedText } from '../atoms/MutedText';
 import { RangeField } from '../molecules/RangeField';
-import styles from './Sound.module.css';
+import styles from './Sound.module.scss';
 
 /** Mute/Unmute toggle and Volume slider, both applied at once (FR-025). */
 export function SoundControls() {

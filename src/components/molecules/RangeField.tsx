@@ -1,6 +1,6 @@
 import { useId } from 'react';
 import { Slider } from '../atoms/Slider';
-import styles from './RangeField.module.css';
+import styles from './RangeField.module.scss';
 
 interface RangeFieldProps {
   label: string;

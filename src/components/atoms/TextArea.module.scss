@@ -1,0 +1,14 @@
+@use '../../styles/shared';
+
+.textarea {
+  width: 100%;
+  padding: var(--space-2);
+  @include shared.bordered-surface;
+  font-family: var(--font-mono);
+  font-size: var(--font-size-small);
+  resize: vertical;
+
+  &[aria-invalid='true'] {
+    border-color: var(--color-error);
+  }
+}

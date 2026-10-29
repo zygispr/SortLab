@@ -151,5 +151,42 @@ The "Before" CSS was saved normalized (hashed class names replaced by their loca
 453 lines) to `$TMPDIR/sortlab-css-before.css` on 2026-10-29. If it is lost, rebuild it
 from `3271b34` as described in §1.
 
-_Still to fill: the after sizes, the §3 diff summary, the Story 3 results, and the
-performance rows._
+### Story 1 compiled-CSS review (T016), 2026-10-29
+
+The normalized "after" CSS has 455 lines (before: 453). Compared line by line with
+order ignored (`diff <(sort before) <(sort after)`), the only addition is one
+`@media (width>=1024px) { … }` wrapper. Every selector, declaration, value, and
+`!important` is otherwise identical. The ordered diff has three moves, all allowed by
+research R8:
+
+| Difference | Cause | Allowed because |
+|------------|-------|-----------------|
+| PageLayout's wide-screen `@media` split into one block after `.main` and one after `.summary` | T013 nesting | each override still follows its base rule |
+| The reduced-motion `@media` moved from the end of the global rules to right after the box-sizing rule | T009 nesting | its declarations are `!important`, so position does not matter |
+| The Button atom's rules (`.button`, `:hover`, `.primary`, `.quiet`) moved before `.muted` … `.fieldValue` | T007: FileButton imports `atoms/Button` | none of the crossed classes styles a button or the file picker's label |
+
+The first build also changed Legend's four `hsl()` stops to comma syntax. That was fixed
+by interpolation (research R8, contract §2 rule 8) before the review above. The empty
+`.label` rule from T007 did not appear in either build, because the minifier drops empty
+rules.
+
+Gates at the end of Story 1: lint, format, and typecheck pass; 571/571 unit and
+component tests pass; 61 e2e tests pass on chromium, webkit, and phone (17 skipped); the
+visual check reports 0 differing pixels; and the reference images are unchanged.
+
+### Story 2 compiled-CSS review (T021), 2026-10-29
+
+Compared with the Story 1 build, the only difference is Region's `.panel`: `background`
+moved after `border` and `border-radius`. These set different properties, so the
+reorder is allowed (R8). Compared with the baseline, with order ignored, the CSS is still
+identical except for PageLayout's extra `@media (width>=1024px)` wrapper. The mixins emit
+exactly the declarations they replaced.
+
+| Check | Result |
+|-------|--------|
+| `shared patterns are written out once` (5 signatures) | Pass |
+| `grep -rn "1024px" src` | Only `src/styles/_shared.scss:6` |
+| `grep -rn "@include shared\." src \| wc -l` | 12 (`bordered-surface` 4, `bare-list` 3, `wrap-row` 3, `focus-ring` 2) |
+| Gates | Lint, format, and typecheck pass; 576/576 unit and component tests; 61 e2e pass on chromium, webkit, and phone (17 skipped); visual check 0 differing pixels; references unchanged |
+
+_Still to fill: the after sizes, the Story 3 results, and the performance rows._

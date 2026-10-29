@@ -2,7 +2,7 @@ import { useEffect, useRef } from 'react';
 import { getAlgorithm } from '../../algorithms/registry';
 import { createBarRenderer } from '../../render/barRenderer';
 import { player, useAppStore } from '../../store/appStore';
-import styles from './Visualizer.module.css';
+import styles from './Visualizer.module.scss';
 
 /**
  * Canvas host for the bars. The renderer redraws on the player's frames; React only

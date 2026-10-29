@@ -1,0 +1,5 @@
+// Spacing of the chart, legend, and counters inside the Visualization region.
+.stack {
+  display: grid;
+  gap: var(--space-3);
+}

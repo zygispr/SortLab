@@ -1,4 +1,4 @@
-import styles from './Legend.module.css';
+import styles from './Legend.module.scss';
 
 const ENTRIES = [
   { name: 'Unsorted', swatch: styles.unsorted, marker: '' },

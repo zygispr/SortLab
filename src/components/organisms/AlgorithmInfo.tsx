@@ -1,6 +1,6 @@
 import { getAlgorithm } from '../../algorithms/registry';
 import { useAppStore } from '../../store/appStore';
-import styles from './AlgorithmPanel.module.css';
+import styles from './AlgorithmPanel.module.scss';
 
 /** Description and typical complexity of the selected algorithm (FR-010). */
 export function AlgorithmInfo() {

@@ -70,11 +70,11 @@ describe('dependency rules', () => {
   });
 
   const allowed: [Level, string][] = [
-    ['atoms', './Button.module.css'],
+    ['atoms', './Button.module.scss'],
     ['atoms', '../../util/clamp'],
     ['molecules', '../atoms/Button'],
-    ['molecules', '../atoms/Button.module.css'],
-    ['molecules', './RangeField.module.css'],
+    ['molecules', '../atoms/Button.module.scss'],
+    ['molecules', './RangeField.module.scss'],
     ['organisms', './Sibling'],
     ['organisms', '../molecules/RangeField'],
     ['organisms', '../../store/appStore'],

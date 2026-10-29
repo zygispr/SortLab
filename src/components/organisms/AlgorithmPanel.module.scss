@@ -1,3 +1,5 @@
+@use '../../styles/shared';
+
 .picker {
   display: grid;
   gap: var(--space-1);
@@ -8,9 +10,7 @@
   width: 100%;
   min-height: 2.5rem;
   padding: var(--space-2);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius);
-  background: var(--color-surface);
+  @include shared.bordered-surface;
   font-size: var(--font-size-base);
 }
 
@@ -32,13 +32,11 @@
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: var(--space-2);
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
+  @include shared.bare-list;
 
-.complexity li {
-  display: grid;
+  li {
+    display: grid;
+  }
 }
 
 .complexityLabel {

@@ -134,29 +134,29 @@ directly related children are nested under it, and the app looks exactly as befo
 
 ### Tests for User Story 1 ⚠️ write first, confirm they fail
 
-- [ ] T008 [US1] Add `describe('no plain stylesheets')` to `tests/unit/styleRules.test.ts` (after T006 in the same file):
+- [X] T008 [US1] Add `describe('no plain stylesheets')` to `tests/unit/styleRules.test.ts` (after T006 in the same file):
   - It collects `Object.keys(import.meta.glob('/src/**/*.css'))` and expects the list to equal `[]`, with the message `Plain stylesheets are not allowed (feature 003, FR-001); rename to .scss:`.
   - Run it and confirm it fails listing the 19 `.css` files.
 
 ### Implementation for User Story 1
 
-- [ ] T009 [US1] Convert the global stylesheets (data-model inventory #1–2):
+- [X] T009 [US1] Convert the global stylesheets (data-model inventory #1–2):
   - `git mv src/styles/tokens.css src/styles/tokens.scss` and `git mv src/styles/global.css src/styles/global.scss`.
   - In `src/main.tsx`, change the two imports to `'./styles/tokens.scss'` and `'./styles/global.scss'`, keeping their order.
   - **`tokens.scss`**: move the `@media (prefers-color-scheme: dark) { :root { … } }` block inside the `:root` rule, after its last declaration, as `@media (prefers-color-scheme: dark) { … }`, with the same custom properties and values (FR-007).
   - **`global.scss`**: move the `@media (prefers-reduced-motion: reduce)` block inside the `*, *::before, *::after` rule as `@media (prefers-reduced-motion: reduce) { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }`.
   - Keep `button:disabled, …, option:disabled` as its own top-level rule. Its selector list differs from the `button, input, select, textarea` rule (it adds `option`), so nesting would change it.
   - Leave the other rules as they are.
-- [ ] T010 [P] [US1] Convert the atoms (inventory #4–7):
+- [X] T010 [P] [US1] Convert the atoms (inventory #4–7):
   - `git mv` `atoms/Button.module.css`, `atoms/MutedText.module.css`, `atoms/Slider.module.css`, and `atoms/TextArea.module.css` to `.module.scss`, and update the import in `atoms/Button.tsx`, `atoms/MutedText.tsx`, `atoms/Slider.tsx`, and `atoms/TextArea.tsx`.
   - **`Button.module.scss`**: nest `.button:hover:not(:disabled)` inside `.button` as `&:hover:not(:disabled)`. Keep `.primary` and `.quiet` with their same-file `composes: button;` after `.button`.
   - **`TextArea.module.scss`**: nest `.textarea[aria-invalid='true']` as `&[aria-invalid='true']`.
   - In the `Button.tsx` TSDoc, change "dimmed by global.css" to "dimmed by global.scss".
-- [ ] T011 [P] [US1] Convert the molecules (inventory #8–10):
+- [X] T011 [P] [US1] Convert the molecules (inventory #8–10):
   - `git mv` `molecules/FileButton.module.css`, `molecules/Legend.module.css`, and `molecules/RangeField.module.css` to `.module.scss`, and update the imports in `molecules/FileButton.tsx`, `molecules/Legend.tsx`, and `molecules/RangeField.tsx`.
   - **`FileButton.module.scss`**: nest `.upload label` as `.upload { label { text-align: center; } }`, and nest `.fileInput:focus-visible + label` as `.fileInput { &:focus-visible + label { … } }`, keeping its comment above it. The `.fileInput` rule has no declarations of its own, so Sass emits only the nested rule; confirm this in the T016 diff.
   - **`Legend.module.scss`**: the content is unchanged. Its swatch modifiers are separate classes, so there is nothing to nest.
-- [ ] T012 [P] [US1] Convert the organisms (inventory #11–17):
+- [X] T012 [P] [US1] Convert the organisms (inventory #11–17):
   - `git mv` `organisms/AlgorithmPanel.module.css`, `organisms/Counters.module.css`, `organisms/DataPanel.module.css`, `organisms/PlaybackBar.module.css`, `organisms/RunSummary.module.css`, `organisms/Sound.module.css`, and `organisms/Visualizer.module.css` to `.module.scss`.
   - Update the imports in `organisms/AlgorithmInfo.tsx`, `organisms/AlgorithmPicker.tsx`, `organisms/Counters.tsx`, `organisms/DataPanel.tsx`, `organisms/PasteInput.tsx`, `organisms/PlaybackBar.tsx`, `organisms/RunSummary.tsx`, `organisms/SoundControls.tsx`, `organisms/SoundPrompt.tsx`, and `organisms/Visualizer.tsx`.
   - Nest the following:
@@ -165,17 +165,17 @@ directly related children are nested under it, and the app looks exactly as befo
     - `.divider::before, .divider::after` → `.divider { &::before, &::after { … } }` (DataPanel)
     - RunSummary → `.table { th, td { …; &:first-child { … } } th { … } }`, keeping the order: the shared `th, td` declarations, then `:first-child`, then `th`-only. That is 3 levels, at the limit.
   - PlaybackBar, Sound, and Visualizer only get the rename.
-- [ ] T013 [P] [US1] Convert the templates and the page (inventory #18–20):
+- [X] T013 [P] [US1] Convert the templates and the page (inventory #18–20):
   - `git mv` `templates/PageLayout.module.css`, `templates/Region.module.css`, and `pages/SortLabPage.module.css` to `.module.scss`, and update the imports in `templates/PageLayout.tsx`, `templates/Region.tsx`, and `pages/SortLabPage.tsx`.
   - **`PageLayout.module.scss`**: split the `@media (min-width: 1024px)` block. Move its `.main` part into the `.main` rule as `@media (min-width: 1024px) { grid-template-columns: 20rem minmax(0, 1fr); }`, and its `.summary` part into the `.summary` rule as `@media (min-width: 1024px) { grid-column: 1 / -1; }`. Keep the literal `1024px` for now; T020 names it.
   - Keep the FR-029 comments above the rules they explain.
-- [ ] T014 [US1] Point the boundary rule at SCSS modules (FR-011):
+- [X] T014 [US1] Point the boundary rule at SCSS modules (FR-011):
   - In `eslint.boundaries.js`, change `SIBLING` to `'^\\./(?!.*\\.module\\.scss$)'` and its doc comment to "the component's own CSS module (`.module.scss`)".
   - In `tests/unit/boundaries.test.ts`, change the three allowed paths to `'./Button.module.scss'`, `'../atoms/Button.module.scss'`, and `'./RangeField.module.scss'`. This is a file-name change only (FR-015).
   - Run `npm run lint` and confirm zero errors. Before this task, the atom and molecule imports of `./X.module.scss` are reported as sibling imports.
   - Depends on T010, T011.
-- [ ] T015 [US1] Update the remaining `.css` mentions in code comments: `src/render/barRenderer.ts:74` ("from tokens.css" → "from tokens.scss"). Then `grep -rnE "\.css\b" src tests eslint.boundaries.js eslint.config.js` must find nothing (`.scss` does not match, since its dot is followed by `s`)
-- [ ] T016 [US1] Validate Story 1 (quickstart → Story 1 and §3):
+- [X] T015 [US1] Update the remaining `.css` mentions in code comments: `src/render/barRenderer.ts:74` ("from tokens.css" → "from tokens.scss"). Then `grep -rnE "\.css\b" src tests eslint.boundaries.js eslint.config.js` must find nothing (`.scss` does not match, since its dot is followed by `s`)
+- [X] T016 [US1] Validate Story 1 (quickstart → Story 1 and §3):
   - Run every gate from the shared rules. `no plain stylesheets` now passes, and `visual.spec.ts` reports 0 differing pixels.
   - Build, save `"$TMPDIR/sortlab-css-after.css"` with the T002 command, and run `diff -u` against the "before" file. If `"$TMPDIR/sortlab-css-before.css"` is gone, rebuild it from T002's recorded commit using quickstart §1 → "If the 'before' file is gone". Never rebuild it from the current branch.
   - Confirm every difference is in this list: dropped comments, the empty `.label` rule gone (T007), PageLayout's `@media` split after `.main` and after `.summary`, and the reduced-motion block moved next to the box-sizing rule. Fix any other difference in the source.
@@ -201,7 +201,7 @@ in `src/styles/_shared.scss` and used by name everywhere.
 
 ### Tests for User Story 2 ⚠️ write first, confirm they fail
 
-- [ ] T017 [US2] Add `describe('shared patterns are written out once')` to `tests/unit/styleRules.test.ts` (after T008). It reuses an `import.meta.glob<string>('/src/**/*.scss', { query: '?raw', import: 'default', eager: true })` map.
+- [X] T017 [US2] Add `describe('shared patterns are written out once')` to `tests/unit/styleRules.test.ts` (after T008). It reuses an `import.meta.glob<string>('/src/**/*.scss', { query: '?raw', import: 'default', eager: true })` map.
   - For each signature below, it expects the files containing it to equal `['/src/styles/_shared.scss']`, with the message `Use the shared item instead of repeating it (feature 003, FR-005, FR-006):`.
   - The signatures:
     - `/1024px/` (`$wide`)
@@ -213,17 +213,17 @@ in `src/styles/_shared.scss` and used by name everywhere.
 
 ### Implementation for User Story 2
 
-- [ ] T018 [US2] Create `src/styles/_shared.scss` exactly per [contract §1](./contracts/style-rules.md#1-shared-partial-srcstyles_sharedscss):
+- [X] T018 [US2] Create `src/styles/_shared.scss` exactly per [contract §1](./contracts/style-rules.md#1-shared-partial-srcstyles_sharedscss):
   - It starts with a `//` header: "Build-time values and patterns shared by the stylesheets (feature 003). Emits no CSS on its own; load it with `@use '…/styles/shared';` and use the `shared.` names. Runtime values (colors, spacing, fonts) are custom properties in tokens.scss, not here."
   - It defines `$wide: 1024px;`, `@mixin bordered-surface`, `@mixin bare-list`, `@mixin wrap-row($display: flex)`, and `@mixin focus-ring`.
   - Each mixin emits exactly the declarations in the contract table, in that order. Each item has a one-line `///` comment saying what it is for and where it is used.
-- [ ] T019 [P] [US2] Use the shared items in the atoms and molecules. Add `@use '../../styles/shared';` as the first line of each file, and put each `@include` where the first declaration it replaces was:
+- [X] T019 [P] [US2] Use the shared items in the atoms and molecules. Add `@use '../../styles/shared';` as the first line of each file, and put each `@include` where the first declaration it replaces was:
   - **`atoms/Button.module.scss`**: `@include shared.bordered-surface;` replaces `border`, `border-radius`, and `background` in `.button`.
   - **`atoms/TextArea.module.scss`**: the same in `.textarea`.
   - **`molecules/Legend.module.scss`**: `@include shared.bare-list;` replaces `margin: 0; padding: 0; list-style: none;` in `.legend`.
   - **`molecules/FileButton.module.scss`**: `@include shared.focus-ring;` replaces the `outline` and `outline-offset` declarations in `&:focus-visible + label`.
   - Depends on T018.
-- [ ] T020 [P] [US2] Use the shared items in the organisms, templates, and global rules (depends on T018):
+- [X] T020 [P] [US2] Use the shared items in the organisms, templates, and global rules (depends on T018):
   - **`organisms/AlgorithmPanel.module.scss`**: `@use '../../styles/shared';`. In `.select`, `bordered-surface` replaces `border`, `border-radius`, and `background`. In `.complexity`, `bare-list` replaces `margin`, `padding`, and `list-style`.
   - **`organisms/Counters.module.scss`**: `@use '../../styles/shared';`. In `.counters`, `bare-list` replaces the same three.
   - **`organisms/PlaybackBar.module.scss`**: `@use '../../styles/shared';`. In both `.buttons` and `.error`, `@include shared.wrap-row;` replaces `display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2);`.
@@ -231,7 +231,7 @@ in `src/styles/_shared.scss` and used by name everywhere.
   - **`templates/PageLayout.module.scss`**: `@use '../../styles/shared';`. Both media queries become `@media (min-width: shared.$wide)`.
   - **`templates/Region.module.scss`**: `@use '../../styles/shared';`. In `.panel`, `bordered-surface` replaces `background`, `border`, and `border-radius`; put the include where `background` was. These properties do not overlap, so the order change is allowed (R8).
   - **`src/styles/global.scss`**: `@use 'shared';` (a sibling partial). In `:focus-visible`, `@include shared.focus-ring;` replaces `outline` and `outline-offset`.
-- [ ] T021 [US2] Validate Story 2 (quickstart → Story 2):
+- [X] T021 [US2] Validate Story 2 (quickstart → Story 2):
   - `shared patterns are written out once` passes, and `grep -rn "1024px" src` finds only `src/styles/_shared.scss`.
   - `grep -rn "@include shared\." src | wc -l` prints 12.
   - Rebuild and re-run the T016 diff: the only new difference is the reordered declarations in `.panel` (Region).

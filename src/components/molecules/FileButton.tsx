@@ -1,6 +1,6 @@
 import { useId } from 'react';
 import { buttonClass } from '../atoms/Button';
-import styles from './FileButton.module.css';
+import styles from './FileButton.module.scss';
 
 interface FileButtonProps {
   /** Visible text and accessible name, e.g. "Upload file". */

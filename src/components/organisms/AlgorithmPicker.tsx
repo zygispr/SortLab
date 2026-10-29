@@ -3,7 +3,7 @@ import { ALGORITHMS, checkSupport, FAMILY_LABELS } from '../../algorithms/regist
 import type { AlgorithmFamily } from '../../algorithms/types';
 import { toFacts } from '../../dataset/facts';
 import { useAppStore } from '../../store/appStore';
-import styles from './AlgorithmPanel.module.css';
+import styles from './AlgorithmPanel.module.scss';
 
 const FAMILIES = Object.keys(FAMILY_LABELS) as AlgorithmFamily[];
 

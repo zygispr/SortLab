@@ -65,3 +65,41 @@ describe('no cross-file composes', () => {
     ).toEqual([]);
   });
 });
+
+describe('no plain stylesheets', () => {
+  it('authors every stylesheet in SCSS', () => {
+    // Keys only: the glob is lazy, so nothing loads.
+    const files = Object.keys(import.meta.glob('/src/**/*.css'));
+    expect(
+      files,
+      'Plain stylesheets are not allowed (feature 003, FR-001); rename to .scss:',
+    ).toEqual([]);
+  });
+});
+
+describe('shared patterns are written out once', () => {
+  const sources = import.meta.glob<string>('/src/**/*.scss', {
+    query: '?raw',
+    import: 'default',
+    eager: true,
+  });
+
+  // One signature per item in src/styles/_shared.scss (contract §1).
+  const signatures: [string, RegExp][] = [
+    ['$wide', /1024px/],
+    ['bordered-surface', /border: 1px solid var\(--color-border\)/],
+    ['bare-list', /list-style: none/],
+    ['wrap-row', /flex-wrap: wrap;\s*align-items: center;/],
+    ['focus-ring', /outline: var\(--focus-width\) solid var\(--color-focus\)/],
+  ];
+
+  it.each(signatures)('writes %s only in _shared.scss', (_item, signature) => {
+    const files = Object.entries(sources)
+      .filter(([, source]) => signature.test(source))
+      .map(([file]) => file);
+    expect(
+      files,
+      'Use the shared item instead of repeating it (feature 003, FR-005, FR-006):',
+    ).toEqual(['/src/styles/_shared.scss']);
+  });
+});

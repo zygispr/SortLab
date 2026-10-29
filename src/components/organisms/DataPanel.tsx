@@ -3,7 +3,7 @@ import { MAX_SIZE, MIN_SIZE, SIZE_STEP } from '../../dataset/random';
 import { useAppStore } from '../../store/appStore';
 import { Button } from '../atoms/Button';
 import { MutedText } from '../atoms/MutedText';
-import styles from './DataPanel.module.css';
+import styles from './DataPanel.module.scss';
 import { PasteInput } from './PasteInput';
 import { RangeField } from '../molecules/RangeField';
 import { UploadInput } from './UploadInput';

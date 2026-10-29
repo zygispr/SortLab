@@ -2,7 +2,7 @@ import { getAlgorithm } from '../../algorithms/registry';
 import { useAppStore } from '../../store/appStore';
 import { MutedText } from '../atoms/MutedText';
 import { formatSeconds } from '../../util/format';
-import styles from './RunSummary.module.css';
+import styles from './RunSummary.module.scss';
 
 /** Comparisons, moves, and time for every finished run on the current dataset (FR-022). */
 export function RunSummary() {

@@ -9,17 +9,17 @@
   gap: var(--space-2);
   color: var(--color-text-muted);
   font-size: var(--font-size-small);
+
+  &::before,
+  &::after {
+    content: '';
+    flex: 1;
+    border-top: 1px solid var(--color-border);
+  }
 }
 
-.divider::before,
-.divider::after {
-  content: '';
-  flex: 1;
-  border-top: 1px solid var(--color-border);
-}
-
-/* Paste numbers' label row. RangeField has the same row in its own module; a second copy
-   stays under Principle I's three-occurrence threshold. */
+// Paste numbers' label row. RangeField has the same row in its own module; a second copy
+// stays under Principle I's three-occurrence threshold.
 .field {
   display: grid;
   gap: var(--space-1);
