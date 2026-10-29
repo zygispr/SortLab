@@ -1,7 +1,14 @@
+@use 'shared';
+
 *,
 *::before,
 *::after {
   box-sizing: border-box;
+
+  @media (prefers-reduced-motion: reduce) {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
 }
 
 html {
@@ -42,8 +49,7 @@ textarea {
 }
 
 :focus-visible {
-  outline: var(--focus-width) solid var(--color-focus);
-  outline-offset: 2px;
+  @include shared.focus-ring;
 }
 
 button:disabled,
@@ -55,7 +61,7 @@ option:disabled {
   cursor: not-allowed;
 }
 
-/* Hides content visually while keeping it available to assistive technology. */
+// Hides content visually while keeping it available to assistive technology.
 .visually-hidden {
   position: absolute;
   width: 1px;
@@ -67,13 +73,4 @@ option:disabled {
   clip-path: inset(50%);
   white-space: nowrap;
   border: 0;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  *,
-  *::before,
-  *::after {
-    animation-duration: 0.01ms !important;
-    transition-duration: 0.01ms !important;
-  }
 }

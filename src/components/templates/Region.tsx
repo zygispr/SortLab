@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import styles from './Region.module.css';
+import styles from './Region.module.scss';
 
 interface RegionProps {
   /** Base id; the heading gets `${id}-heading`, which names the section. */

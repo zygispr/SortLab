@@ -1,6 +1,6 @@
 import { useAppStore } from '../../store/appStore';
 import { Button } from '../atoms/Button';
-import styles from './Sound.module.css';
+import styles from './Sound.module.scss';
 
 /** First-visit "Turn on sound" prompt next to Start, until the user answers (FR-026a). */
 export function SoundPrompt() {

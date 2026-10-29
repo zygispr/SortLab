@@ -1,0 +1,16 @@
+@use '../../styles/shared';
+
+.bar {
+  display: grid;
+  gap: var(--space-3);
+}
+
+.buttons {
+  @include shared.wrap-row;
+}
+
+.error {
+  @include shared.wrap-row;
+  color: var(--color-error);
+  font-weight: 600;
+}

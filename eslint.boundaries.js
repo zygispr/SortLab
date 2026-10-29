@@ -12,8 +12,8 @@
 /** Imports a component file or folder at any relative depth, e.g. `../molecules/Legend`. */
 const levels = (...names) => `^\\.{1,2}/(.*/)?(${names.join('|')})(/|$)`;
 
-/** Any import from the same folder except the component's own CSS module. */
-const SIBLING = '^\\./(?!.*\\.module\\.css$)';
+/** Any import from the same folder except the component's own CSS module (`.module.scss`). */
+const SIBLING = '^\\./(?!.*\\.module\\.scss$)';
 
 const STATE_MESSAGE =
   'Atomic design (FR-004): atoms, molecules, and templates may not use app state (store, zustand, or hooks); take values and callbacks as props.';

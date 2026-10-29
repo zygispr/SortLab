@@ -13,7 +13,7 @@ import { SoundControls } from '../organisms/SoundControls';
 import { Visualizer } from '../organisms/Visualizer';
 import { PageLayout } from '../templates/PageLayout';
 import { Region } from '../templates/Region';
-import styles from './SortLabPage.module.css';
+import styles from './SortLabPage.module.scss';
 
 /**
  * The SortLab screen: fills the page layout with the app's regions (feature 001

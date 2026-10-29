@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import styles from './MutedText.module.css';
+import styles from './MutedText.module.scss';
 
 interface MutedTextProps {
   /** `p` (default) for a line of its own, `span` where it sits inline among controls. */

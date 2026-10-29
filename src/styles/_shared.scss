@@ -1,0 +1,34 @@
+// Build-time values and patterns shared by the stylesheets (feature 003). Emits no CSS on
+// its own; load it with `@use '…/styles/shared';` and use the `shared.` names. Runtime
+// values (colors, spacing, fonts) are custom properties in tokens.scss, not here.
+
+/// The wide-screen breakpoint: two columns and a full-width summary row (PageLayout).
+$wide: 1024px;
+
+/// A bordered control or panel on the surface color (Button, TextArea, algorithm select, Region).
+@mixin bordered-surface {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  background: var(--color-surface);
+}
+
+/// A list with no bullets, indent, or margins (Legend, algorithm complexity, Counters).
+@mixin bare-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/// A row of items that wraps, centered vertically, with a small gap (PlaybackBar, SoundPrompt).
+@mixin wrap-row($display: flex) {
+  display: $display;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+/// The keyboard focus outline; the file picker's label reproduces it exactly (global, FileButton).
+@mixin focus-ring {
+  outline: var(--focus-width) solid var(--color-focus);
+  outline-offset: 2px;
+}

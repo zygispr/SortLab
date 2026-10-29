@@ -25,7 +25,7 @@ npm run preview      # serve the production build
 All must pass before merge:
 
 ```bash
-npm run lint         # ESLint, zero errors
+npm run lint         # ESLint + Stylelint, zero errors
 npm run format:check # Prettier
 npm run typecheck    # tsc --noEmit (strict)
 npm test             # Vitest unit + component tests
@@ -82,8 +82,8 @@ component's folder is its level, and nothing else sits in `src/components/`.
 
 "App state" means `src/store/`, `zustand`, or `src/hooks/` (whose hooks read the store).
 Atoms, molecules, and templates take everything they show as props and report every user
-action through callback props. Importing a component includes importing its CSS module; a
-component's own CSS module is always allowed.
+action through callback props. Importing a component includes importing its CSS module
+(`.module.scss`); a component's own CSS module is always allowed.
 
 To decide the level of a new component, apply these rules in order:
 
@@ -114,9 +114,73 @@ Use `Button` for every button and `RangeField` for every labelled slider; they c
 shared look, focus outline, disabled state, and accessible labelling.
 
 Code that is not a component stays outside the levels: helpers in `src/util/` (`clamp`,
-`formatSeconds`), hooks in `src/hooks/`, and shared styles in `src/styles/`.
+`formatSeconds`), hooks in `src/hooks/`, and shared styles in `src/styles/` (see
+[Styles](#styles)).
 
 `npm run lint` enforces the import and app-state rules (`eslint.boundaries.js`), and
 `npm test` checks that every file in `src/components/` sits in a level folder. Design
 documents are in
 [`specs/002-atomic-design-components/`](specs/002-atomic-design-components/).
+
+## Styles
+
+All styles are SCSS, compiled to plain CSS at build time:
+
+- **`<Component>.module.scss`** next to each component: a CSS module whose class names are
+  private to that component.
+- **`src/styles/tokens.scss`**: the design tokens, as CSS custom properties for the light
+  and dark themes.
+- **`src/styles/global.scss`**: page-wide rules for plain elements (box sizing, base
+  typography, focus outline, disabled controls, `.visually-hidden`, reduced motion).
+- **`src/styles/_shared.scss`**: build-time values and patterns that emit no CSS on their
+  own.
+
+Load the shared items with `@use` and keep the `shared.` prefix, so a reader can see
+where a name comes from:
+
+```scss
+@use '../../styles/shared';
+
+.button {
+  @include shared.bordered-surface;
+
+  &:hover:not(:disabled) {
+    border-color: var(--color-focus);
+  }
+}
+```
+
+| Shared item                | What it is                                                        | Used by                                          |
+| -------------------------- | ----------------------------------------------------------------- | ------------------------------------------------ |
+| `shared.$wide`             | The 1024 px breakpoint for two columns and the full-width summary | `PageLayout`                                     |
+| `bordered-surface`         | Border, radius, and surface background                            | `Button`, `TextArea`, algorithm select, `Region` |
+| `bare-list`                | A list with no bullets, indent, or margins                        | `Legend`, algorithm complexity, `Counters`       |
+| `wrap-row($display: flex)` | A wrapping, vertically centered row with a small gap              | `PlaybackBar`, `SoundPrompt` (`inline-flex`)     |
+| `focus-ring`               | The keyboard focus outline                                        | global `:focus-visible`, `FileButton` label      |
+
+Rules:
+
+- **Nest by element.** Put an element's states (`&:hover`, `&:disabled`,
+  `&[aria-invalid='true']`, `&::before`), its `@media` changes, and its directly related
+  children under its own rule. Never nest in a way that creates a selector the element
+  does not need.
+- **Three levels at most**: a top-level rule plus two nested ones. A nested `@media`
+  counts as a level. `npm run lint` (Stylelint `max-nesting-depth`) enforces this.
+- **Runtime values stay custom properties.** Theme colors, spacing, radius, fonts, and the
+  bar-color parameters live in `tokens.scss`. They switch with the color scheme, and
+  `src/render/barRenderer.ts` reads them while the app runs. A Sass `$variable` is only
+  for a value that never changes at runtime and that a media query needs, or that more
+  than one file uses.
+- **Name a pattern once it repeats.** A group of three or more declarations used in three
+  or more places becomes a mixin in `_shared.scss`; fewer repeats stay inline.
+- **`composes` only within the same file.** To reuse another component's look, use that
+  component or a class helper it exports, such as `buttonClass()` from `Button`. A
+  `composes … from` another `.scss` file ships uncompiled Sass.
+- **Interpolate `var()` arguments in color functions**, as in
+  `hsl(#{var(--h) var(--s) var(--l)})`. Otherwise Sass rewrites the space-separated syntax
+  into the comma form.
+- **Use `@use`, never `@import`**; `@import` is deprecated in Sass.
+
+`npm test` (`tests/unit/styleRules.test.ts`) rejects plain `.css` files, cross-file
+`composes`, and any shared pattern written out outside `_shared.scss`. Design documents
+are in [`specs/003-scss-styling/`](specs/003-scss-styling/).

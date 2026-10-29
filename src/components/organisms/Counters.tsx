@@ -1,5 +1,5 @@
 import { useAppStore } from '../../store/appStore';
-import styles from './Counters.module.css';
+import styles from './Counters.module.scss';
 import { formatSeconds } from '../../util/format';
 
 /** Live comparison and move counts, elapsed time, and step position (FR-021). */

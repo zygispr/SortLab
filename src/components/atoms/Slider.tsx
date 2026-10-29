@@ -1,4 +1,4 @@
-import styles from './Slider.module.css';
+import styles from './Slider.module.scss';
 
 interface SliderProps {
   /** Links the slider to its `<label htmlFor>`. */
