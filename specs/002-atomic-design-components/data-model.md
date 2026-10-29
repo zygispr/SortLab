@@ -90,7 +90,7 @@ self-contained piece of interface; it is not split further than that.
 |------|-------|----------|
 | `formatSeconds` | `components/format.ts` | `util/format.ts` |
 | shared control styles | `components/controls.module.css` | split into `atoms/Button.module.css`, `atoms/Slider.module.css`, `atoms/MutedText.module.css`, `molecules/Field.module.css`; file deleted |
-| layout styles | `App.module.css` | `templates/PageLayout.module.css`, `templates/Region.module.css`; file deleted |
+| layout styles | `App.module.css` | `templates/PageLayout.module.css` (`.page`, `.header`, `.title`, `.main`, `.controls`, `.stage`, `.summary`), `templates/Region.module.css` (`.panel`, `.panelHeading`), `pages/SortLabPage.module.css` (`.stack`, the spacing of chart, legend, and counters inside the Visualization region); file deleted |
 | feature CSS modules | `components/*.module.css` | beside their organism or molecule (`Sound.module.css` is shared by `SoundPrompt` and `SoundControls`, both organisms) |
 | `useKeyboardShortcuts` | `hooks/useKeyboardShortcuts.ts` | unchanged |
 

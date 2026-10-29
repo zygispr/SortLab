@@ -88,9 +88,12 @@ runs) and one for Linux (CI). Both sets are captured **before any component move
 the current code.
 
 - macOS set: `npx playwright test visual --project=chromium --update-snapshots` locally.
-- Linux set: a manual GitHub Actions workflow, `.github/workflows/visual-baselines.yml`
-  (`workflow_dispatch`), runs the same command on the chosen branch and uploads the
-  images as an artifact, which is downloaded with `gh run download` and committed.
+- Linux set: a GitHub Actions workflow, `.github/workflows/visual-baselines.yml`, runs
+  the same command and uploads the images as an artifact, which is downloaded with
+  `gh run download` and committed. It triggers on `workflow_dispatch` and on pushes that
+  change the workflow file itself, because GitHub only lets a manual-only workflow be
+  started once it exists on the default branch; the push trigger captures the images on
+  the feature branch before any component moves.
 
 **Rationale**: Playwright is already the e2e tool, so this adds no dependency. Fonts and
 anti-aliasing differ between operating systems, so pixel-exact comparison only works

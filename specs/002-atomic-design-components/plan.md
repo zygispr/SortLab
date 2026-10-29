@@ -136,4 +136,4 @@ mapping from each current file to its new path is in [data-model.md](./data-mode
 
 | Addition | Why Needed | Simpler Alternative Rejected Because |
 |----------|------------|--------------------------------------|
-| Manual CI workflow `visual-baselines.yml` to capture Linux reference images | Pixel-exact screenshots only match on the platform that took them (clarification Q1), CI runs Linux, and the development Mac has no Docker to produce Linux images locally | Checking only on macOS leaves CI without the permanent check the spec requires; adding a pixel tolerance would let real regressions through; installing Docker is a machine change outside the repo |
+| CI workflow `visual-baselines.yml` (manual, or on changes to its own file) to capture Linux reference images | Pixel-exact screenshots only match on the platform that took them (clarification Q1), CI runs Linux, and the development Mac has no Docker to produce Linux images locally | Checking only on macOS leaves CI without the permanent check the spec requires; adding a pixel tolerance would let real regressions through; installing Docker is a machine change outside the repo |
