@@ -298,7 +298,7 @@ enforced by the standard lint and test gates.
   - Every shared item in `_shared.scss` is used at least once.
   - No `@import`, `as *`, or cross-file `composes` remains.
   - `stylelint.config.js` and `package.json` contain nothing beyond T003–T004.
-- [ ] T027 Run every quality gate: `npm run lint`, `npm run format:check`, `npm run typecheck`, `npm test`, `npm run build`, and `npx playwright test --project=chromium --project=webkit --project=phone`.
+- [X] T027 Run every quality gate: `npm run lint`, `npm run format:check`, `npm run typecheck`, `npm test`, `npm run build`, and `npx playwright test --project=chromium --project=webkit --project=phone`.
   - Confirm `git status tests/e2e/visual.spec.ts-snapshots` is clean.
   - Push, and confirm the `CI` workflow passes on Linux, including Firefox and `visual.spec.ts` against the unchanged Linux references.
   - Fix every failure.

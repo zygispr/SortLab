@@ -264,5 +264,5 @@ with a separate reviewer.
 Final gates (T027) before the push: lint (ESLint + Stylelint), format, typecheck, 576/576
 unit and component tests, the build, and 61 e2e tests on chromium, webkit, and phone (17
 skipped) all pass. The visual check reports 0 differing pixels, and the reference images
-are unchanged. CI passed on Linux, including Firefox, for `2969219` (the SCSS conversion)
-and `35d2d57`.
+are unchanged. CI passed on Linux, including Firefox and the Linux visual references, for `2969219` (the SCSS conversion), `35d2d57`, and the final `51ee821` (run 40842397626: 79 e2e passed, 25 skipped)
+
