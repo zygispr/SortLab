@@ -168,7 +168,7 @@ were built in Phase 2 (T006–T008); this phase proves them on real files.
 pass, and the two manual violations in quickstart → Story 3 each produce exactly one named
 error.
 
-- [ ] T037 [US3] Validate User Story 3 per quickstart.md → Story 3: add `import '../../store/appStore';` to `src/components/molecules/Legend.tsx`, run `npm run lint`, and confirm exactly one error with the FR-004 message; replace it with `import '../organisms/DataPanel';` and confirm exactly one error with the FR-003 molecule message; remove it and confirm `npm run lint` passes; `npm test` passes (side-effect imports, so `no-unused-vars` adds no second error) (depends on T013)
+- [X] T037 [US3] Validate User Story 3 per quickstart.md → Story 3: add `import '../../store/appStore';` to `src/components/molecules/Legend.tsx`, run `npm run lint`, and confirm exactly one error with the FR-004 message; replace it with `import '../organisms/DataPanel';` and confirm exactly one error with the FR-003 molecule message; remove it and confirm `npm run lint` passes; `npm test` passes (side-effect imports, so `no-unused-vars` adds no second error) (depends on T013)
 
 **Checkpoint**: All three user stories work; the structure is enforced by the standard
 lint gate.
