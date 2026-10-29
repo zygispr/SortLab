@@ -72,7 +72,8 @@ custom import-scanning test duplicates what lint does and wouldn't show in edito
 
 ## 4. Proving the rules catch violations (SC-003)
 
-**Decision**: `tests/unit/boundaries.test.ts` (Vitest, `node` environment) loads
+**Decision**: `tests/unit/boundaries.test.ts` (Vitest, default jsdom environment, since the shared
+`tests/setup.ts` needs browser globals) loads
 `eslint.boundaries.js` into ESLint's Node API and lints one deliberate violation per rule
 with `lintText` and a fake file path in each level, asserting the named message; it also
 lints a valid import per level and asserts no message. A second check in the same file
