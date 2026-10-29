@@ -85,3 +85,14 @@ Side-effect imports keep `no-unused-vars` from adding a second error.
 | Bundle size | `npm run build` gzip sizes vs the numbers recorded before | JS + CSS grow ≤ 2% |
 | Frame rate and response | Feature 001 quickstart → Performance checks, frame-rate and Pause rows | unchanged budgets: no frames > 50 ms, response < 100 ms |
 | Load | Lighthouse mobile preset | interactive < 2 s |
+
+## Measured results
+
+Bundle sizes are exact gzip bytes, `gzip -9 -c <file> | wc -c`, for each file in
+`dist/assets/` after `npm run build` (Vite's own report rounds to 0.01 kB and skips the
+worker). File names carry content hashes, so rows compare files by chunk name. The SC-006
+limit is the "Before" total + 2%: 91,448 × 1.02 = **93,277 bytes**.
+
+| Measured | Commit | `index-*.js` | `steps.worker-*.js` | `index-*.css` | Total gzip JS + CSS |
+|----------|--------|--------------|---------------------|---------------|---------------------|
+| Before (flat `src/components/`) | `9a94383` | 83,785 (raw 266,435) | 5,356 (raw 14,751) | 2,307 (raw 7,837) | **91,448** |

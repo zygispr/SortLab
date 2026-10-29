@@ -1,0 +1,43 @@
+# Captures the Linux reference images for tests/e2e/visual.spec.ts and uploads them as the
+# `visual-baselines` artifact. Pixel-exact screenshots only match on the platform that took
+# them, CI runs Linux, and the development Mac cannot produce Linux images locally.
+#
+# It runs by itself on a push that changes this file, because GitHub only lets a manual-only
+# workflow be started once it exists on the default branch. Run it by hand after an
+# intentional visual change:
+#   gh workflow run visual-baselines.yml --ref <branch>
+# then download the artifact into tests/e2e/visual.spec.ts-snapshots/ and commit it
+# (specs/002-atomic-design-components/quickstart.md, "capture the references").
+name: Visual baselines
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - '.github/workflows/visual-baselines.yml'
+
+jobs:
+  capture:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+          cache: npm
+
+      - run: npm ci
+
+      - name: Install Playwright Chromium
+        run: npx playwright install --with-deps chromium
+      - name: Capture reference images
+        run: npx playwright test tests/e2e/visual.spec.ts --project=chromium --update-snapshots
+
+      - name: Upload reference images
+        uses: actions/upload-artifact@v5
+        with:
+          name: visual-baselines
+          path: tests/e2e/visual.spec.ts-snapshots/
+          retention-days: 7
