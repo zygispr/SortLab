@@ -22,8 +22,8 @@ directly on each animation frame.
 - The playback loop and the sound engine are not React components. Zustand stores are
   usable outside React (`getState`, `setState`, `subscribe`), so the loop can push progress
   and read settings without React glue code.
-- `persist` covers FR-026 (remember mute and volume) and FR-026a (sound prompt shown only
-  once) with a few lines and no custom storage code.
+- `persist` covers FR-026 (remember mute and volume) and FR-026a (sound off on a first
+  visit) with a few lines and no custom storage code.
 - It is ~1 KB, has no boilerplate (no actions/reducers/providers), and its store is a plain
   function that is easy to unit-test by calling actions and reading state.
 

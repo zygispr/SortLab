@@ -29,7 +29,7 @@ its own. Signatures and emitted declarations are in
 | `$wide` (1024px) | value | PageLayout (2 media queries) | Named by FR-005 and SC-005. It is the one breakpoint the layout, README, and e2e layout tests refer to |
 | `bordered-surface` | mixin | Button, TextArea, AlgorithmPanel `.select`, Region `.panel` | 3 declarations × 4 uses (FR-006) |
 | `bare-list` | mixin | Legend `.legend`, AlgorithmPanel `.complexity`, Counters `.counters` | 3 declarations × 3 uses (FR-006) |
-| `wrap-row($display: flex)` | mixin | PlaybackBar `.buttons` and `.error`, Sound `.prompt` (`inline-flex`) | 3 declarations (`flex-wrap`, `align-items`, `gap`) × 3 uses (FR-006) |
+| `wrap-row` | mixin | PlaybackBar `.buttons` and `.error` | 3 declarations (`flex-wrap`, `align-items`, `gap`) × 3 uses (FR-006). Revised 2026-10-29 (feature 001, sound prompt removed): Sound `.prompt` (`inline-flex`) and the `$display` parameter were removed, leaving 2 uses; the mixin stays rather than being written out again |
 | `focus-ring` | mixin | global `:focus-visible`, FileButton label | 2 uses, below the threshold, but covered by the spec's edge-case exception for two copies that must stay identical: FileButton's ring must match the global ring exactly, so the two are one fact rather than two similar texts |
 
 **What counts as a repeated group (FR-006)**: three or more declarations that recur
@@ -74,7 +74,7 @@ All 19 stylesheets plus the new partial. "Nested" lists what moves under its ele
 | 13 | `organisms/DataPanel.module` | `.divider { &::before, &::after }` | — |
 | 14 | `organisms/PlaybackBar.module` | — | `wrap-row` ×2 |
 | 15 | `organisms/RunSummary.module` | `.table { th, td { &:first-child } th }` (3 levels) | — |
-| 16 | `organisms/Sound.module` | — | `wrap-row(inline-flex)` |
+| 16 | `organisms/Sound.module` | — | `wrap-row(inline-flex)` (none since 2026-10-29: `.prompt` removed) |
 | 17 | `organisms/Visualizer.module` | — | — |
 | 18 | `pages/SortLabPage.module` | — | — |
 | 19 | `templates/PageLayout.module` | the wide `@media` inside `.main` and inside `.summary` | `$wide` |

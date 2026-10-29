@@ -49,7 +49,7 @@ appended to its own. None reads app state or imports another component.
 
 | Prop | Type | Default | Notes |
 |------|------|---------|-------|
-| `variant` | `'primary' \| 'secondary' \| 'quiet'` | `'secondary'` | primary = filled focus color (Start, Generate); secondary = bordered surface (all other buttons); quiet = no border or background ("Not now") |
+| `variant` | `'primary' \| 'secondary'` | `'secondary'` | primary = filled focus color (Start, Generate); secondary = bordered surface (all other buttons). Revised 2026-10-29 (feature 001, sound prompt removed): the `quiet` variant (no border or background), used only by "Not now", was removed |
 | …native | `ButtonHTMLAttributes<HTMLButtonElement>` | | `type` is always `"button"` unless `type="submit"` is passed; `disabled` uses the native attribute (dimmed by `global.css`) |
 
 Renders one `<button>`. It is the only component whose stylesheet styles a button

@@ -46,12 +46,11 @@ describe('Button', () => {
         <Button variant="primary">Primary</Button>
         <Button>Default</Button>
         <Button variant="secondary">Secondary</Button>
-        <Button variant="quiet">Quiet</Button>
       </>,
     );
     const classOf = (name: string) => screen.getByRole('button', { name }).className;
     expect(classOf('Default')).toBe(classOf('Secondary'));
-    expect(new Set([classOf('Primary'), classOf('Secondary'), classOf('Quiet')]).size).toBe(3);
+    expect(classOf('Primary')).not.toBe(classOf('Secondary'));
   });
 
   it('appends a passed className to its own', () => {
@@ -69,13 +68,11 @@ describe('buttonClass', () => {
       <>
         <Button>Default</Button>
         <Button variant="primary">Primary</Button>
-        <Button variant="quiet">Quiet</Button>
       </>,
     );
     const classOf = (name: string) => screen.getByRole('button', { name }).className;
     expect(buttonClass()).toBe(classOf('Default'));
     expect(buttonClass('secondary')).toBe(classOf('Default'));
     expect(buttonClass('primary')).toBe(classOf('Primary'));
-    expect(buttonClass('quiet')).toBe(classOf('Quiet'));
   });
 });

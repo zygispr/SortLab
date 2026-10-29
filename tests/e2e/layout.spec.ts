@@ -86,8 +86,6 @@ test('every control is reachable by Tab, in visual order, with a visible outline
     'Paste numbers',
     'Algorithm',
     'Resume',
-    'Turn on sound',
-    'Not now',
     'Step back',
     'Step forward',
     'Reset',

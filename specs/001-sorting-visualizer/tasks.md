@@ -242,6 +242,29 @@ again (`tests/e2e/sound.spec.ts`).
 
 ---
 
+## Revisions
+
+### R1 (2026-10-29): Remove the first-visit sound prompt
+
+**Why**: "Turn on sound" and "Not now" next to Start duplicated the Unmute button in the
+Sound controls. Sound already starts muted on a first visit, so Unmute alone covers it.
+Supersedes T075, T076, T080, and T082, and the prompt parts of T074 and T078.
+
+**Changed requirement**: FR-026a now reads "Sound MUST be off for a first-time visitor;
+the Unmute control in the Sound controls turns it on. No separate sound prompt is shown."
+
+- [X] T091 [US4] Update the feature 001 docs: `spec.md` (clarification answer with a dated revision note, User Story 4 summary, Independent Test and scenario 1, FR-026a), `contracts/ui-contract.md` (drop the prompt from the Sound region and its two Controls rows; Unmute creates the audio), `data-model.md` (drop `soundPromptAnswered` from Settings; unknown stored fields are ignored), `quickstart.md` → Story 4 steps 1, 2, and 4, and `research.md` (what `persist` covers)
+- [X] T092 [P] [US4] Rewrite the tests first: `tests/integration/SoundControls.test.tsx` (a first visit shows Start, Step back, Step forward, Reset and no prompt; Unmute calls `soundEngine.enable()`), `tests/e2e/sound.spec.ts` (fresh context shows Unmute pressed and no "Turn on sound"; Unmute → Start → Mute → reload stays muted; `expectNoA11yViolations`), `tests/e2e/layout.spec.ts` (drop the two prompt buttons from the Tab order), `tests/unit/settings.test.ts` (settings are only `{ muted, volume }`; a stored `soundPromptAnswered` from before this revision is ignored and mute and volume are kept), `tests/unit/store.test.ts` (drop the `enableSound()` and `dismissSoundPrompt()` tests; tests that need sound on call `toggleMute()`)
+- [X] T093 [US4] Delete `src/components/organisms/SoundPrompt.tsx`, its render in `organisms/PlaybackBar.tsx`, and the `.prompt` rule in `organisms/Sound.module.scss`; remove `soundPromptAnswered` from `SoundSettings`, `DEFAULT_SETTINGS`, `readSettings`, and `partialize`, and remove `enableSound()` and `dismissSoundPrompt()` from `src/store/appStore.ts`; keep `SETTINGS_VERSION` at 1 so stored mute and volume survive (makes T092 pass)
+- [X] T094 [P] Remove what only the prompt used (Principle I): the `quiet` variant of `atoms/Button` (`Button.tsx`, `Button.module.scss`, `tests/integration/atoms/Button.test.tsx`) and the `$display` parameter of `wrap-row` in `src/styles/_shared.scss`; update `README.md` (Atoms, Organisms, shared-items table)
+- [X] T095 [P] Bring the living contracts of later features in line, with dated revision notes: `specs/002-atomic-design-components/contracts/component-levels.md` (Button `variant`), `specs/003-scss-styling/contracts/style-rules.md` (`wrap-row` signature), `specs/003-scss-styling/data-model.md` (shared items and the Sound row of the inventory), and `specs/003-scss-styling/quickstart.md` (11 includes, `wrap-row` 2)
+- [X] T096 Update the macOS visual references: `npx playwright test tests/e2e/visual.spec.ts --project=chromium --update-snapshots`, then `--repeat-each=3` passes 24/24; the 4 full-page images change, the `data-error` and `upload-focus` ones do not
+- [ ] T097 Update the Linux visual references: push the branch, run `gh workflow run visual-baselines.yml --ref <branch>`, download the `visual-baselines` artifact into `tests/e2e/visual.spec.ts-snapshots/`, and commit the 4 changed `*-chromium-linux.png` full-page images
+- [X] T098 Run the quality gates locally: `npm run typecheck`, `npm run lint`, `npm run format:check`, `npm test` (571 pass), and `npx playwright test` on chromium, webkit, and phone (Firefox runs in CI only)
+- [ ] T099 Confirm CI is green on the pushed branch, including Firefox and the Linux visual references (depends on T097)
+
+---
+
 ## Dependencies & Execution Order
 
 ### Phase Dependencies

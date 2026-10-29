@@ -15,7 +15,7 @@ One page, top to bottom on phones; controls beside the visualization on wide scr
 | Algorithm panel | **Algorithm** picker grouped by family; description and complexity of the selection |
 | Visualization | Canvas of bars; legend; live counters (comparisons, moves, elapsed time, step `position / total`) |
 | Playback bar | **Start/Pause/Resume**, **Step back**, **Step forward**, **Reset**, **Speed** slider |
-| Sound | **Turn on sound** prompt (first visit), **Mute/Unmute** toggle, **Volume** slider |
+| Sound | **Mute/Unmute** toggle, **Volume** slider |
 | Run summary | Table of runs on the current dataset |
 | Messages | One polite live region for status and errors |
 
@@ -34,9 +34,7 @@ One page, top to bottom on phones; controls beside the visualization on wide scr
 | Step forward | button | status `ready` or `paused` and `position < total` | Apply one step; status becomes `paused` |
 | Reset | button | `position > 0` | Bars to original order, status `ready` |
 | Speed | slider, logarithmic, 2–60,000 steps/s (default 100); value text e.g. "100 steps per second" | always | Takes effect on the next frame |
-| Turn on sound | button in prompt | prompt visible | Unmute, create audio, hide prompt for good |
-| Not now | button in prompt | prompt visible | Hide prompt for good; stay muted |
-| Mute / Unmute | toggle button (`aria-pressed`) | always | Immediate (FR-025) |
+| Mute / Unmute | toggle button (`aria-pressed`) | always | Immediate (FR-025); Unmute also creates the audio on first use |
 | Volume | slider 0–100 % | always | Immediate |
 
 Disabled controls use the native `disabled` attribute and a visibly dimmed style (FR-030).

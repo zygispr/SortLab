@@ -17,59 +17,23 @@ afterEach(() => {
 });
 
 const button = (name: string) => screen.getByRole('button', { name });
-const queryButton = (name: string) => screen.queryByRole('button', { name });
 
-describe('SoundPrompt (FR-026a)', () => {
-  it('shows "Turn on sound" and "Not now" right after Start on a first visit', () => {
+describe('first visit (FR-026a)', () => {
+  it('offers no sound prompt next to Start: Unmute is the one way to turn sound on', () => {
     render(<PlaybackBar />);
     setRun({ status: 'ready', total: 10 });
     const names = screen.getAllByRole('button').map((b) => b.textContent);
-    const start = names.indexOf('Start');
-    expect(names.slice(start, start + 3)).toEqual(['Start', 'Turn on sound', 'Not now']);
-  });
-
-  it('"Turn on sound" unmutes, enables audio, and hides the prompt', async () => {
-    const enable = vi.spyOn(soundEngine, 'enable');
-    render(<PlaybackBar />);
-    await userEvent.click(button('Turn on sound'));
-    expect(enable).toHaveBeenCalled();
-    expect(useAppStore.getState().muted).toBe(false);
-    expect(useAppStore.getState().soundPromptAnswered).toBe(true);
-    expect(queryButton('Turn on sound')).not.toBeInTheDocument();
-    expect(queryButton('Not now')).not.toBeInTheDocument();
-  });
-
-  it('"Not now" hides the prompt and stays muted', async () => {
-    const enable = vi.spyOn(soundEngine, 'enable');
-    render(<PlaybackBar />);
-    await userEvent.click(button('Not now'));
-    expect(enable).not.toHaveBeenCalled();
-    expect(useAppStore.getState().muted).toBe(true);
-    expect(queryButton('Turn on sound')).not.toBeInTheDocument();
-  });
-
-  it('does not render again once answered', () => {
-    act(() => {
-      useAppStore.setState({ soundPromptAnswered: true });
-    });
-    render(<PlaybackBar />);
-    expect(queryButton('Turn on sound')).not.toBeInTheDocument();
-  });
-
-  it('is not shown without Web Audio support', () => {
-    act(() => {
-      useAppStore.setState({ soundSupported: false });
-    });
-    render(<PlaybackBar />);
-    expect(queryButton('Turn on sound')).not.toBeInTheDocument();
+    expect(names).toEqual(['Start', 'Step back', 'Step forward', 'Reset']);
   });
 });
 
 describe('SoundControls (FR-025)', () => {
   it('shows "Unmute" pressed while muted and "Mute" not pressed while unmuted', async () => {
+    const enable = vi.spyOn(soundEngine, 'enable');
     render(<SoundControls />);
     expect(button('Unmute')).toHaveAttribute('aria-pressed', 'true');
     await userEvent.click(button('Unmute'));
+    expect(enable).toHaveBeenCalled();
     expect(useAppStore.getState().muted).toBe(false);
     expect(button('Mute')).toHaveAttribute('aria-pressed', 'false');
     await userEvent.click(button('Mute'));

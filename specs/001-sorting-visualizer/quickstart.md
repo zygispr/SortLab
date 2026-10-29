@@ -76,17 +76,17 @@ Automated: `tests/unit/parse.test.ts` (every rule in
 
 ### Story 4 – Hear the sort (P4)
 
-1. Clear site data, then open the app. **Expect**: sound is off, and a **Turn on sound**
-   prompt sits next to Start.
-2. Press **Turn on sound**, then **Start**. **Expect**: tones play with each step, higher
+1. Clear site data, then open the app. **Expect**: sound is off, the Sound controls show
+   **Unmute**, and no sound prompt sits next to Start.
+2. Press **Unmute**, then **Start**. **Expect**: tones play with each step, higher
    bars sound higher, and a rising sweep plays at completion.
 3. Press **Mute**. **Expect**: silence immediately, and sorting continues.
-4. Reload. **Expect**: still muted, and the prompt does not return.
+4. Reload. **Expect**: still muted.
 5. Run at maximum speed with sound on. **Expect**: no clicks, crackle, or loudness build-up
    (manual listening check, FR-027).
 
 Automated: `tests/unit/sound.test.ts` (pitch mapping, one-tone-per-frame limit, persisted
-settings) and `tests/e2e/sound.spec.ts` (prompt flow and persistence).
+settings) and `tests/e2e/sound.spec.ts` (unmute, mute, and persistence).
 
 ## Performance and accessibility checks
 

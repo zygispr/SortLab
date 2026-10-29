@@ -1,20 +1,16 @@
 import type { ButtonHTMLAttributes } from 'react';
 import styles from './Button.module.scss';
 
-type ButtonVariant = 'primary' | 'secondary' | 'quiet';
+type ButtonVariant = 'primary' | 'secondary';
 
 interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
-  /**
-   * `primary`: filled with the focus color (Start, Generate). `secondary` (default):
-   * bordered surface. `quiet`: no border or background ("Not now").
-   */
+  /** `primary`: filled with the focus color (Start, Generate). `secondary` (default): bordered surface. */
   variant?: ButtonVariant;
 }
 
 const VARIANT_CLASS = {
   primary: styles.primary,
   secondary: styles.button,
-  quiet: styles.quiet,
 } as const;
 
 /**
