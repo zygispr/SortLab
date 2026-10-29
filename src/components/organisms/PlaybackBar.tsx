@@ -1,5 +1,6 @@
 import { canReset, canStepBack, canStepForward, useAppStore } from '../../store/appStore';
-import controls from '../../styles/controls.module.css';
+import { Button } from '../atoms/Button';
+import { MutedText } from '../atoms/MutedText';
 import styles from './PlaybackBar.module.css';
 import { SoundPrompt } from './SoundPrompt';
 import { SpeedSlider } from './SpeedSlider';
@@ -21,37 +22,25 @@ export function PlaybackBar() {
   return (
     <div className={styles.bar}>
       <div className={styles.buttons}>
-        <button type="button" className={controls.primary} onClick={togglePlay}>
+        <Button variant="primary" onClick={togglePlay}>
           {TOGGLE_LABEL[run.status]}
-        </button>
+        </Button>
         <SoundPrompt />
-        <button
-          type="button"
-          className={controls.button}
-          disabled={!canStepBack(run)}
-          onClick={stepBack}
-        >
+        <Button disabled={!canStepBack(run)} onClick={stepBack}>
           Step back
-        </button>
-        <button
-          type="button"
-          className={controls.button}
-          disabled={!canStepForward(run)}
-          onClick={stepForward}
-        >
+        </Button>
+        <Button disabled={!canStepForward(run)} onClick={stepForward}>
           Step forward
-        </button>
-        <button type="button" className={controls.button} disabled={!canReset(run)} onClick={reset}>
+        </Button>
+        <Button disabled={!canReset(run)} onClick={reset}>
           Reset
-        </button>
-        {startQueued && <span className={controls.muted}>Preparing…</span>}
+        </Button>
+        {startQueued && <MutedText as="span">Preparing…</MutedText>}
       </div>
       {run.prepareError && (
         <div className={styles.error}>
           <p>Couldn&apos;t prepare this sort. Try again.</p>
-          <button type="button" className={controls.button} onClick={retryPrepare}>
-            Retry
-          </button>
+          <Button onClick={retryPrepare}>Retry</Button>
         </div>
       )}
       <SpeedSlider />

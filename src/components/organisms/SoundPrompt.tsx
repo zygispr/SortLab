@@ -1,5 +1,5 @@
 import { useAppStore } from '../../store/appStore';
-import controls from '../../styles/controls.module.css';
+import { Button } from '../atoms/Button';
 import styles from './Sound.module.css';
 
 /** First-visit "Turn on sound" prompt next to Start, until the user answers (FR-026a). */
@@ -10,12 +10,10 @@ export function SoundPrompt() {
 
   return (
     <span className={styles.prompt}>
-      <button type="button" className={controls.button} onClick={enableSound}>
-        Turn on sound
-      </button>
-      <button type="button" className={styles.dismiss} onClick={dismissSoundPrompt}>
+      <Button onClick={enableSound}>Turn on sound</Button>
+      <Button variant="quiet" onClick={dismissSoundPrompt}>
         Not now
-      </button>
+      </Button>
     </span>
   );
 }

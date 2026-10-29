@@ -102,3 +102,31 @@ describe('component levels', () => {
     ).toEqual([]);
   });
 });
+
+describe('shared building blocks', () => {
+  // Source of every component, keyed by its path under src/components (FR-007, SC-004).
+  const sources = Object.entries(
+    import.meta.glob<string>('/src/components/**/*.tsx', {
+      query: '?raw',
+      import: 'default',
+      eager: true,
+    }),
+  ).map(([key, source]) => [key.slice('/src/components/'.length), source] as const);
+
+  const filesMatching = (pattern: RegExp) =>
+    sources.filter(([, source]) => pattern.test(source)).map(([file]) => file);
+
+  it('renders <button> only in the Button atom', () => {
+    expect(filesMatching(/<button/)).toEqual(['atoms/Button.tsx']);
+  });
+
+  it('renders range inputs only in the Slider atom', () => {
+    expect(filesMatching(/type="range"/)).toEqual(['atoms/Slider.tsx']);
+  });
+
+  it('applies button classes only in the Button atom', () => {
+    // Whole words, so a class such as `styles.buttons` (a row of buttons) does not match.
+    const files = filesMatching(/className=\{[^}]*\b(button|primary|dismiss|quiet)\b/);
+    expect(files.filter((file) => file !== 'atoms/Button.tsx')).toEqual([]);
+  });
+});

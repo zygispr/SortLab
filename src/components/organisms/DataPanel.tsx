@@ -1,7 +1,8 @@
 import { useId } from 'react';
 import { MAX_SIZE, MIN_SIZE, SIZE_STEP } from '../../dataset/random';
 import { useAppStore } from '../../store/appStore';
-import controls from '../../styles/controls.module.css';
+import { Button } from '../atoms/Button';
+import { MutedText } from '../atoms/MutedText';
 import styles from './DataPanel.module.css';
 import { PasteInput } from './PasteInput';
 import { RangeField } from '../molecules/RangeField';
@@ -31,9 +32,9 @@ export function DataPanel() {
         valueText={`${String(size)} values`}
         onChange={setDatasetSize}
       />
-      <button type="button" className={controls.primary} onClick={generateDataset}>
+      <Button variant="primary" onClick={generateDataset}>
         Generate
-      </button>
+      </Button>
 
       <div className={styles.divider} aria-hidden="true">
         or use your own numbers
@@ -47,9 +48,9 @@ export function DataPanel() {
         </p>
       )}
 
-      <p className={controls.muted}>
+      <MutedText>
         Current data: <strong>{label}</strong>
-      </p>
+      </MutedText>
     </div>
   );
 }

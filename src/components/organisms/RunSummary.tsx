@@ -1,6 +1,6 @@
 import { getAlgorithm } from '../../algorithms/registry';
 import { useAppStore } from '../../store/appStore';
-import controls from '../../styles/controls.module.css';
+import { MutedText } from '../atoms/MutedText';
 import { formatSeconds } from '../../util/format';
 import styles from './RunSummary.module.css';
 
@@ -9,7 +9,7 @@ export function RunSummary() {
   const history = useAppStore((s) => s.history);
 
   if (history.length === 0) {
-    return <p className={controls.muted}>No runs yet. Press Start to sort this dataset.</p>;
+    return <MutedText>No runs yet. Press Start to sort this dataset.</MutedText>;
   }
 
   return (

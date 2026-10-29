@@ -1,7 +1,8 @@
 import { useId } from 'react';
-import controls from '../../styles/controls.module.css';
+import { Slider } from '../atoms/Slider';
+import styles from './RangeField.module.css';
 
-interface RangeFieldProps {
+export interface RangeFieldProps {
   label: string;
   min: number;
   max: number;
@@ -15,7 +16,11 @@ interface RangeFieldProps {
   className?: string;
 }
 
-/** A labelled slider with its current value shown beside the label. */
+/**
+ * A labelled slider with its current value shown beside the label: the label names the
+ * slider, the visible value is hidden from assistive technology, and `valueText` is spoken
+ * instead. A passed `className` is appended to the field's own.
+ */
 export function RangeField({
   label,
   min,
@@ -29,25 +34,21 @@ export function RangeField({
 }: RangeFieldProps) {
   const id = useId();
   return (
-    <div className={className ? [controls.field, className].join(' ') : controls.field}>
-      <div className={controls.fieldHeader}>
+    <div className={className ? [styles.field, className].join(' ') : styles.field}>
+      <div className={styles.fieldHeader}>
         <label htmlFor={id}>{label}</label>
-        <span className={controls.fieldValue} aria-hidden="true">
+        <span className={styles.fieldValue} aria-hidden="true">
           {display}
         </span>
       </div>
-      <input
+      <Slider
         id={id}
-        className={controls.slider}
-        type="range"
         min={min}
         max={max}
         step={step}
         value={value}
-        aria-valuetext={valueText}
-        onChange={(e) => {
-          onChange(Number(e.target.value));
-        }}
+        valueText={valueText}
+        onChange={onChange}
       />
     </div>
   );

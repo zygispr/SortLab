@@ -1,7 +1,8 @@
 import { useId, useState } from 'react';
 import { parseDataset } from '../../dataset/parse';
 import { useAppStore } from '../../store/appStore';
-import controls from '../../styles/controls.module.css';
+import { Button } from '../atoms/Button';
+import { TextArea } from '../atoms/TextArea';
 import styles from './DataPanel.module.css';
 
 interface PasteInputProps {
@@ -24,25 +25,24 @@ export function PasteInput({ errorId }: PasteInputProps) {
   };
 
   return (
-    <div className={controls.field}>
-      <label htmlFor={id} className={controls.fieldHeader}>
+    <div className={styles.field}>
+      <label htmlFor={id} className={styles.fieldHeader}>
         Paste numbers
       </label>
-      <textarea
+      <TextArea
         id={id}
-        className={styles.textarea}
         rows={3}
         value={text}
         placeholder="e.g. 5, 3, 8, 1"
         aria-describedby={dataError ? errorId : undefined}
-        aria-invalid={dataError ? true : undefined}
+        invalid={Boolean(dataError)}
         onChange={(e) => {
           setText(e.target.value);
         }}
       />
-      <button type="button" className={controls.button} disabled={text.trim() === ''} onClick={use}>
+      <Button disabled={text.trim() === ''} onClick={use}>
         Use these numbers
-      </button>
+      </Button>
     </div>
   );
 }

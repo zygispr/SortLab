@@ -1,5 +1,6 @@
 import { useAppStore } from '../../store/appStore';
-import controls from '../../styles/controls.module.css';
+import { Button } from '../atoms/Button';
+import { MutedText } from '../atoms/MutedText';
 import { RangeField } from '../molecules/RangeField';
 import styles from './Sound.module.css';
 
@@ -11,15 +12,15 @@ export function SoundControls() {
   const { toggleMute, setVolume } = useAppStore.getState();
 
   if (!supported) {
-    return <p className={controls.muted}>Sound isn&apos;t supported in this browser.</p>;
+    return <MutedText>Sound isn&apos;t supported in this browser.</MutedText>;
   }
 
   const percent = Math.round(volume * 100);
   return (
     <div className={styles.controls}>
-      <button type="button" className={controls.button} aria-pressed={muted} onClick={toggleMute}>
+      <Button aria-pressed={muted} onClick={toggleMute}>
         {muted ? 'Unmute' : 'Mute'}
-      </button>
+      </Button>
       <RangeField
         label="Volume"
         min={0}

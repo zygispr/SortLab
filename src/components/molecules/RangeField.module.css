@@ -1,0 +1,16 @@
+.field {
+  display: grid;
+  gap: var(--space-1);
+}
+
+.fieldHeader {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-2);
+  font-size: var(--font-size-small);
+}
+
+.fieldValue {
+  color: var(--color-text-muted);
+  font-variant-numeric: tabular-nums;
+}
