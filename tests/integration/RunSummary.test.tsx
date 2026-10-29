@@ -1,5 +1,5 @@
 import { act, render, screen, within } from '@testing-library/react';
-import { RunSummary } from '../../src/components/RunSummary';
+import { RunSummary } from '../../src/components/organisms/RunSummary';
 import { useAppStore } from '../../src/store/appStore';
 import { resetStore } from './storeHelpers';
 

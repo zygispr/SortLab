@@ -1,6 +1,6 @@
 import { fireEvent, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { DataPanel } from '../../src/components/DataPanel';
+import { DataPanel } from '../../src/components/organisms/DataPanel';
 import { useAppStore } from '../../src/store/appStore';
 import { resetStore } from './storeHelpers';
 

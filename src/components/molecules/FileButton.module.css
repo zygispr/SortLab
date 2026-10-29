@@ -1,0 +1,19 @@
+.upload {
+  display: grid;
+}
+
+.upload label {
+  text-align: center;
+}
+
+/* The real file input is visually hidden, so show its focus on the label that looks like
+   the button. */
+.fileInput:focus-visible + label {
+  outline: var(--focus-width) solid var(--color-focus);
+  outline-offset: 2px;
+}
+
+/* The secondary button look comes from the Button atom, the one place buttons are styled. */
+.label {
+  composes: button from '../atoms/Button.module.css';
+}

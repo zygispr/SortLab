@@ -1,0 +1,45 @@
+.page {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: var(--space-4);
+}
+
+.header {
+  padding-block: var(--space-2) var(--space-4);
+}
+
+.title {
+  font-size: var(--font-size-title);
+  line-height: 1.2;
+}
+
+/* Grid children default to min-width: auto; minmax(0, …) and min-width: 0 stop wide
+   content (canvas, tables) from pushing the page past the viewport (FR-029). */
+.main {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-4);
+}
+
+.controls,
+.stage {
+  display: grid;
+  gap: var(--space-4);
+  align-content: start;
+  min-width: 0;
+}
+
+/* The summary slot wraps its region, so it needs the same guard as the columns. */
+.summary {
+  min-width: 0;
+}
+
+@media (min-width: 1024px) {
+  .main {
+    grid-template-columns: 20rem minmax(0, 1fr);
+  }
+
+  .summary {
+    grid-column: 1 / -1;
+  }
+}
