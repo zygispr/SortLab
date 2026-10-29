@@ -21,12 +21,12 @@ the full quality gates are as in
    `-chromium-darwin.png` suffix (4 full-page, 4 Data panel states), then 24 passing runs
    with 0 differing pixels.
 3. Capture the Linux images in CI and add them. The workflow runs by itself when a push
-   changes `.github/workflows/visual-baselines.yml` (a manual-only workflow cannot be
-   started from a branch until it exists on `main`); after merge it can also be started by
+   changes `.github/workflows/visual-baselines.yml` or `tests/e2e/visual.spec.ts` (a
+   manual-only workflow cannot be started from a branch until it exists on `main`); after merge it can also be started by
    hand with `gh workflow run visual-baselines.yml --ref <branch>`.
 
    ```bash
-   git push    # the push that adds visual-baselines.yml starts the capture run
+   git push    # the push that adds visual.spec.ts starts the capture run
    run=$(gh run list --workflow visual-baselines.yml --branch 002-atomic-design-components --limit 1 --json databaseId -q '.[0].databaseId')
    gh run watch "$run" --exit-status
    gh run download "$run" --name visual-baselines --dir tests/e2e/visual.spec.ts-snapshots

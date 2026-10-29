@@ -103,7 +103,7 @@ the current code.
 - Linux set: a GitHub Actions workflow, `.github/workflows/visual-baselines.yml`, runs
   the same command and uploads the images as an artifact, which is downloaded with
   `gh run download` and committed. It triggers on `workflow_dispatch` and on pushes that
-  change the workflow file itself, because GitHub only lets a manual-only workflow be
+  change the workflow file itself or `tests/e2e/visual.spec.ts`, because GitHub only lets a manual-only workflow be
   started once it exists on the default branch; the push trigger captures the images on
   the feature branch before any component moves.
 

@@ -2,9 +2,9 @@
 # `visual-baselines` artifact. Pixel-exact screenshots only match on the platform that took
 # them, CI runs Linux, and the development Mac cannot produce Linux images locally.
 #
-# It runs by itself on a push that changes this file, because GitHub only lets a manual-only
-# workflow be started once it exists on the default branch. Run it by hand after an
-# intentional visual change:
+# It runs by itself on a push that changes this file or the visual spec, because GitHub only
+# lets a manual-only workflow be started once it exists on the default branch, and a changed
+# spec needs new references anyway. Run it by hand after an intentional visual change:
 #   gh workflow run visual-baselines.yml --ref <branch>
 # then download the artifact into tests/e2e/visual.spec.ts-snapshots/ and commit it
 # (specs/002-atomic-design-components/quickstart.md, "capture the references").
@@ -15,6 +15,7 @@ on:
   push:
     paths:
       - '.github/workflows/visual-baselines.yml'
+      - 'tests/e2e/visual.spec.ts'
 
 jobs:
   capture:
