@@ -8,14 +8,16 @@
 
 Reorganize SortLab's 15 flat interface components, plus the `App` shell, into the five
 atomic design levels, with no change an end user can see or hear. Repeated markup becomes
-shared building blocks: a `Button` atom replaces ten hand-styled buttons, and a `Field`
-molecule backs the labelled sliders and the paste box. The page layout becomes a
+shared building blocks: a `Button` atom replaces ten hand-styled buttons, and the
+`RangeField` molecule is built from a new `Slider` atom. Atoms import no other component
+and molecules import only atoms. The page layout becomes a
 state-free template that the page fills through props.
 
 The level rules are enforced by ESLint's built-in `no-restricted-imports`, with one
 message per rule, and a unit test proves each rule fires. A permanent Playwright
 screenshot check, with reference images captured before anything moves, proves the
-screen is pixel-identical in both themes at 360 px and 1440 px. No dependency is added.
+screen is pixel-identical in both themes at 360 px and 1440 px, plus the Data panel's
+error and keyboard-focus states. No dependency is added.
 Details are in [research.md](./research.md).
 
 ## Technical Context
@@ -44,9 +46,9 @@ CSS grows ≤ 2% (SC-006)
 accessible names, focus order, and announcements; existing tests change only in import
 paths (FR-012)
 
-**Scale/Scope**: 16 components today become 24 (5 atoms, 3 molecules, 13 organisms,
-2 templates, 1 page), plus 8 atom and molecule test files, 1 boundary test, 1 visual
-spec with 8 reference images, 1 manual CI workflow, 1 README section
+**Scale/Scope**: 16 components today become 23 (4 atoms, 3 molecules, 13 organisms,
+2 templates, 1 page), plus 7 atom and molecule test files, 1 boundary test, 1 visual
+spec with 16 reference images, 1 manual CI workflow, 1 README section
 
 ## Constitution Check
 
@@ -54,7 +56,7 @@ spec with 8 reference images, 1 manual CI workflow, 1 README section
 
 | Principle | How this plan meets it | Status |
 |-----------|------------------------|--------|
-| I. Code Quality | Removes the remaining duplication: 10 hand-styled buttons → `Button`, 4 muted-text copies → `MutedText`, 2 field headers → `Field`. Every new component exported with a TSDoc contract. Lint, format, and type checks stay at zero errors; boundary rules run in the same lint gate | Pass |
+| I. Code Quality | Removes the remaining duplication: 10 hand-styled buttons → `Button`, 4 muted-text copies → `MutedText`; the field label row stays at 2 copies (`RangeField`, `PasteInput`), under the three-occurrence threshold. Every new component exported with a TSDoc contract. Lint, format, and type checks stay at zero errors; boundary rules run in the same lint gate | Pass |
 | II. Simplicity | Built-in ESLint rule instead of a boundaries plugin; no barrel files; no component catalog tool (spec Assumptions). Additions are only the five folders the spec requires, and one manual CI workflow (see Complexity Tracking) | Pass (one justified addition) |
 | III. Testing | Visual check and boundary test written and the references captured **before** any component moves; one test file per atom and molecule (FR-016); the full existing suite keeps its assertions (FR-012); each rule's violation is shown to fail (SC-003) | Pass |
 | IV. User Experience | No visible change by construction and by proof (pixel-identical images, axe checks unchanged); shared atoms make future controls consistent | Pass |
@@ -87,8 +89,8 @@ specs/002-atomic-design-components/
 src/
 ├── main.tsx                     # renders <SortLabPage /> (was <App />)
 ├── components/
-│   ├── atoms/                   # Button, FileButton, Slider, TextArea, MutedText (+ CSS modules)
-│   ├── molecules/               # Field, RangeField, Legend (+ CSS modules)
+│   ├── atoms/                   # Button, Slider, TextArea, MutedText (+ CSS modules)
+│   ├── molecules/               # RangeField, Legend, FileButton (+ CSS modules)
 │   ├── organisms/               # DataPanel, UploadInput, PasteInput, AlgorithmPicker,
 │   │                            # AlgorithmInfo, Visualizer, Counters, PlaybackBar,
 │   │                            # SpeedSlider, SoundPrompt, SoundControls, RunSummary,
@@ -104,14 +106,14 @@ eslint.boundaries.js             # level rules, spread into eslint.config.js
 .github/workflows/visual-baselines.yml   # manual: capture Linux reference images
 
 tests/
-├── unit/boundaries.test.ts      # each rule fires with its message; folder check
+├── unit/boundaries.test.ts      # each rule fires with its message; folder check; button/slider markup only in atoms
 ├── integration/
-│   ├── atoms/                   # Button, FileButton, Slider, TextArea, MutedText tests
-│   ├── molecules/               # Field, RangeField, Legend tests
+│   ├── atoms/                   # Button, Slider, TextArea, MutedText tests
+│   ├── molecules/               # RangeField, Legend, FileButton tests
 │   └── *.test.tsx               # existing tests, import paths updated; App → SortLabPage
 └── e2e/
-    ├── visual.spec.ts           # 4 full-page screenshots, chromium only
-    └── visual.spec.ts-snapshots/  # 4 × darwin + 4 × linux reference images
+    ├── visual.spec.ts           # 4 full-page + 4 Data panel state screenshots, chromium only
+    └── visual.spec.ts-snapshots/  # 8 × darwin + 8 × linux reference images
 
 README.md                        # new "Component structure" section (FR-006)
 ```

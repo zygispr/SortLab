@@ -25,19 +25,23 @@ and can't be matched as cleanly; barrel files add indirection and a maintenance 
 anything that reads or changes the store is an organism (or the page). The resulting
 inventory is in [data-model.md](./data-model.md). Summary:
 
-- **Atoms (new, extracted)**: `Button`, `FileButton`, `Slider`, `TextArea`, `MutedText`.
-- **Molecules**: `Field` (new), `RangeField` (exists), `Legend` (moved; it is static).
+- **Atoms (new, extracted)**: `Button`, `Slider`, `TextArea`, `MutedText`.
+- **Molecules**: `RangeField` (exists), `Legend` (moved; it is static), `FileButton` (new).
 - **Organisms**: the 13 store-connected components that exist today, unchanged in role.
 - **Templates**: `PageLayout` and `Region`, extracted from `App.tsx`.
 - **Pages**: `SortLabPage`, today's `App` minus its layout markup.
 
 **Rationale**: The ten `<button>` elements (in five components) become `Button`, and the
 upload label styled as a button becomes `FileButton`, so six components stop styling
-buttons themselves (FR-007). Muted helper text appears
+buttons themselves (FR-007). `FileButton` is a molecule, not an atom, because it reuses
+the `Button` atom's stylesheet and atoms import no other component (FR-003). Muted helper text appears
 four times (`PlaybackBar`, `SoundControls`, `RunSummary`, `DataPanel`), so it becomes the
-`MutedText` atom (FR-010). The label row with an optional visible value is shared by
-`RangeField` (three sliders) and `PasteInput`, so it becomes the `Field` molecule; the
-slider and text area inputs become atoms so `Field` composes atoms only.
+`MutedText` atom (FR-010). The slider and text area inputs become atoms. The label row
+appears twice (`RangeField` and `PasteInput`), under the three-occurrence threshold, and
+a shared `Field` molecule would have to be imported by the `RangeField` molecule, which
+FR-003 does not allow (molecules import only atoms). So `RangeField` is built from the
+`Slider` atom and keeps its label row, and `PasteInput` keeps its own label row
+unchanged, which also keeps its markup identical (FR-011).
 
 **Not extracted**: the three error/notice messages look different on purpose (an inline
 data error with a ⚠ icon, a prepare error row with a Retry button, an info box for the
@@ -48,14 +52,18 @@ the three-occurrence threshold.
 ## 3. Enforcing the dependency rules (FR-004, FR-005, FR-015)
 
 **Decision**: ESLint's built-in `no-restricted-imports` with `regex` patterns, one config
-block per level, kept in a separate module `eslint.boundaries.js` that `eslint.config.js`
+block per level (holding that level's state patterns too, because flat config replaces a
+rule's options when two blocks match the same file), kept in a separate module `eslint.boundaries.js` that `eslint.config.js`
 spreads in. Each pattern's `message` names the broken rule. Exact rules and messages are
 in [contracts/component-levels.md](./contracts/component-levels.md).
 
 **Rationale**: A spike against ESLint 10.13 confirmed the regexes catch higher-level
 imports at any relative depth (`../molecules/X`, `../../components/organisms/X`), the
-store (`../../store/appStore`), and `zustand`, while allowing same-level and `util/`
-imports. The state rule also blocks `src/hooks/`, whose hooks read the store. It runs inside the existing `npm run lint` gate and adds no dependency
+store (`../../store/appStore`), and `zustand`, while allowing `util/` imports. A second
+spike (2026-10-29) confirmed the atom and molecule rules: `^\./(?!.*\.module\.css$)`
+blocks sibling components (`./Slider`) but allows a component's own CSS module, molecules
+may import `../atoms/Button` and `../atoms/Button.module.css`, and two separate blocks for
+the same folder leave only the second block's patterns active. The state rule also blocks `src/hooks/`, whose hooks read the store. It runs inside the existing `npm run lint` gate and adds no dependency
 (Principle II).
 
 **Alternatives considered**: `eslint-plugin-boundaries` and `dependency-cruiser` are
@@ -81,6 +89,10 @@ the `chromium` project only (skipped in the others), four full-page images: 360�
 caret hidden. The page is put in a fixed state first: fresh browser context (so the sound
 prompt shows and settings are defaults), then a fixed list of 30 numbers is pasted and
 loaded so the bars do not depend on the random dataset, then focus is cleared.
+Four more images capture only the Data panel at 1440×900 in both schemes: once with an
+invalid paste (error border and message) and once with keyboard focus on Upload file
+(focus outline on its label). Those are the two state selectors whose rules move between
+CSS modules, and the full-page images never show them.
 
 Reference images are stored beside the test in `tests/e2e/visual.spec.ts-snapshots/`,
 named by Playwright with the project and platform, so there is one set for macOS (local
@@ -122,8 +134,8 @@ page-wide effects (keyboard shortcuts, pausing when hidden, reduced motion) and 
 
 **Decision**: `src/components/format.ts` moves to `src/util/format.ts` beside
 `clamp.ts`. `src/components/controls.module.css` is split: button styles into
-`atoms/Button.module.css` (also used by `FileButton`), slider and field styles into
-`atoms/Slider.module.css` and `molecules/Field.module.css`, muted text into
+`atoms/Button.module.css` (also composed by the `FileButton` molecule), slider and field
+styles into `atoms/Slider.module.css` and `molecules/RangeField.module.css`, muted text into
 `atoms/MutedText.module.css`; the file is then deleted. Global utilities such as
 `.visually-hidden` stay in `src/styles/global.css`. `src/hooks/` is unchanged.
 

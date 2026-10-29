@@ -17,8 +17,9 @@ the full quality gates are as in
    npx playwright test tests/e2e/visual.spec.ts --project=chromium --repeat-each=3
    ```
 
-   **Expect**: 4 images written to `tests/e2e/visual.spec.ts-snapshots/` with a
-   `-chromium-darwin.png` suffix, then 12 passing runs with 0 differing pixels.
+   **Expect**: 8 images written to `tests/e2e/visual.spec.ts-snapshots/` with a
+   `-chromium-darwin.png` suffix (4 full-page, 4 Data panel states), then 24 passing runs
+   with 0 differing pixels.
 3. Capture the Linux images in CI and add them. The workflow runs by itself when a push
    changes `.github/workflows/visual-baselines.yml` (a manual-only workflow cannot be
    started from a branch until it exists on `main`); after merge it can also be started by
@@ -31,7 +32,7 @@ the full quality gates are as in
    gh run download "$run" --name visual-baselines --dir tests/e2e/visual.spec.ts-snapshots
    ```
 
-   **Expect**: 4 more images with a `-chromium-linux.png` suffix. Commit all 8 before
+   **Expect**: 8 more images with a `-chromium-linux.png` suffix. Commit all 16 before
    restructuring. (The main CI run on that same push fails the visual check until the
    Linux images are committed; that is expected once.)
 4. Record the bundle size:
@@ -51,26 +52,29 @@ npx playwright test --project=chromium --project=webkit --project=phone
 ```
 
 **Expect**: the five folders and no files; all unit, component, and e2e tests pass,
-including `visual.spec.ts` with 0 differing pixels in all 4 images (SC-002). CI runs the
+including `visual.spec.ts` with 0 differing pixels in all 8 images (SC-002). CI runs the
 same on Linux, including Firefox.
 
 ### Story 2 – shared building blocks
 
 ```bash
-grep -rln -E "<button|className=\{[^}]*(button|primary|dismiss)" src/components
+grep -rln -E "<button|className=\{[^}]*\b(button|primary|dismiss|quiet)\b" src/components
 grep -rn "type=\"range\"" src/components
 ```
 
 **Expect**: the first finds only `atoms/Button.tsx`; the second only `atoms/Slider.tsx`
-(SC-004). Using the README section, pick three on-screen controls (Speed slider, Run
+(SC-004). This is a manual cross-check: `npm test` enforces the same permanently
+(`tests/unit/boundaries.test.ts` → shared building blocks). Using the README section, pick three on-screen controls (Speed slider, Run
 summary table, Upload file) and confirm each is found in at most two lookups (SC-005).
 
 ### Story 3 – rules are enforced
 
-1. Add `import { useAppStore } from '../../store/appStore';` to `atoms/Button.tsx` and run
-   `npm run lint`. **Expect**: one error naming FR-004.
-2. Replace it with `import { DataPanel } from '../organisms/DataPanel';`. **Expect**: one
-   error naming FR-005. Remove it; `npm run lint` passes.
+1. Add `import '../../store/appStore';` to `molecules/Legend.tsx` and run `npm run lint`.
+   **Expect**: one error naming FR-004.
+2. Replace it with `import '../organisms/DataPanel';`. **Expect**: one error naming
+   FR-003 (the molecule rule). Remove it; `npm run lint` passes.
+
+Side-effect imports keep `no-unused-vars` from adding a second error.
 
 `tests/unit/boundaries.test.ts` checks every rule the same way automatically (SC-003).
 

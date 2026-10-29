@@ -190,8 +190,9 @@ standard quality checks fail with a message naming the rule; removing it makes t
   may change only where they refer to a component's location or name.
 - **FR-013**: A permanent automated visual check MUST compare the screen with reference
   images captured from the app before the restructuring, at the narrowest (360 px) and
-  widest (1440 px) supported widths in light and dark themes (4 images), and fail on any
-  pixel difference. Reference images are compared on the same browser and platform they
+  widest (1440 px) supported widths in light and dark themes (4 full-page images), plus
+  the Data panel at 1440 px in both themes with an invalid paste shown and with keyboard
+  focus on Upload file (4 panel images), and fail on any pixel difference. Reference images are compared on the same browser and platform they
   were captured with.
 - **FR-014**: The performance budgets of the sorting visualizer (steady animation,
   control response, load time) MUST still be met.
@@ -221,8 +222,9 @@ standard quality checks fail with a message naming the rule; removing it makes t
 - **SC-001**: 100% of interface components are assigned to exactly one level, and none
   remain outside the level structure.
 - **SC-002**: Zero end-user-visible differences: the full existing test suite passes, and
-  the automated visual check (FR-013) finds 0 differing pixels in all 4 reference images
-  (360 px and 1440 px wide, light and dark themes).
+  the automated visual check (FR-013) finds 0 differing pixels in all 8 reference images
+  (4 full-page at 360 px and 1440 px wide in light and dark themes, and 4 Data panel
+  states).
 - **SC-003**: Zero dependency-rule violations in the finished codebase, and a deliberately
   introduced violation of each rule is caught by the standard quality checks every time.
 - **SC-004**: Buttons are styled in exactly one place (down from six components today),
