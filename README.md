@@ -75,7 +75,7 @@ component's folder is its level, and nothing else sits in `src/components/`.
 | Level    | Folder       | May import components from  | May use app state | Holds                                                            |
 | -------- | ------------ | --------------------------- | ----------------- | ---------------------------------------------------------------- |
 | Atom     | `atoms/`     | none                        | No                | The smallest reusable elements                                   |
-| Molecule | `molecules/` | atoms                       | No                | Small groups of atoms that act as one unit                       |
+| Molecule | `molecules/` | atoms                       | No                | Small groups of atoms or plain elements that act as one unit     |
 | Organism | `organisms/` | atoms, molecules, organisms | Yes               | Distinct, state-connected sections of the screen                 |
 | Template | `templates/` | atoms, molecules, templates | No                | Page layout: regions and their arrangement, filled through props |
 | Page     | `pages/`     | any level                   | Yes               | The SortLab screen and its page-wide behavior                    |
@@ -89,10 +89,10 @@ To decide the level of a new component, apply these rules in order:
 
 1. Reads or changes app state → **organism**, or the **page** if it is the whole screen.
 2. Arranges page regions and holds no content of its own → **template**.
-3. Built only from atoms (or an atom's styles) and works as one small unit →
-   **molecule**. Something built from molecules is an **organism**.
-4. Otherwise, a single element (possibly with a hidden helper element) that uses no other
-   component → **atom**.
+3. A single element (possibly with a hidden helper element) that uses no other component
+   → **atom**.
+4. Otherwise, a small group of plain elements and/or atoms (or an atom's styles) that works
+   as one unit → **molecule**. Something built from molecules is an **organism**.
 
 A component needed by only one parent today still gets its own file when it is a
 self-contained piece of interface.

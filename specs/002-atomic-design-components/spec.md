@@ -149,8 +149,9 @@ standard quality checks fail with a message naming the rule; removing it makes t
 - **FR-003**: Levels MUST follow these rules:
   - **Atoms**: the smallest reusable elements (for example a button, a slider input, a
     visually hidden label). They depend on no other component.
-  - **Molecules**: small groups of atoms that work as one unit (for example a labelled
-    slider with its value shown). They depend only on atoms.
+  - **Molecules**: small groups of atoms or plain elements that work as one unit (for
+    example a labelled slider with its value shown, or the bar-state legend). They depend
+    only on atoms.
   - **Organisms**: distinct sections of the interface (for example the Data panel, the
     Playback bar, the Run summary). They may depend on atoms, molecules, and other
     organisms.
