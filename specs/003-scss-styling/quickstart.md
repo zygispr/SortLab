@@ -137,5 +137,19 @@ defect. Record the reviewed diff summary in [Measured results](#measured-results
 
 ## Measured results
 
-_To be filled during implementation: the baseline from §1, the after sizes, the §3 diff
-summary, and the performance rows._
+Bundle sizes are exact byte counts for each file in `dist/assets/` after `npm run build`:
+raw is `wc -c < <file>`, and gzip is `gzip -9 -c <file> | wc -c`. File names carry
+content hashes, so rows compare files by chunk name. The FR-016 limit for the CSS chunk
+is the "Before" gzip size + 5%: 2,350 × 1.05 = **2,467 bytes** (raw: 8,022 × 1.05 =
+8,423 bytes).
+
+| Measured | Commit | `index-*.js` | `steps.worker-*.js` | `index-*.css` | Total gzip JS + CSS |
+|----------|--------|--------------|---------------------|---------------|---------------------|
+| Before (plain CSS) | `3271b34` | 84,108 (raw 267,075) | 5,356 (raw 14,751) | 2,350 (raw 8,022) | **91,814** |
+
+The "Before" CSS was saved normalized (hashed class names replaced by their local names,
+453 lines) to `$TMPDIR/sortlab-css-before.css` on 2026-10-29. If it is lost, rebuild it
+from `3271b34` as described in §1.
+
+_Still to fill: the after sizes, the §3 diff summary, the Story 3 results, and the
+performance rows._
