@@ -1,7 +1,7 @@
 import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { AlgorithmInfo } from '../../src/components/AlgorithmInfo';
-import { AlgorithmPicker } from '../../src/components/AlgorithmPicker';
+import { AlgorithmInfo } from '../../src/components/organisms/AlgorithmInfo';
+import { AlgorithmPicker } from '../../src/components/organisms/AlgorithmPicker';
 import { act } from '@testing-library/react';
 import { useAppStore } from '../../src/store/appStore';
 import { resetStore, spyOn } from './storeHelpers';

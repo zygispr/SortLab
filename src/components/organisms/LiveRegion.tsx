@@ -1,4 +1,4 @@
-import { useAppStore } from '../store/appStore';
+import { useAppStore } from '../../store/appStore';
 
 /**
  * Visually hidden polite live region for status and error messages (ui-contract.md →

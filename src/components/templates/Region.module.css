@@ -1,0 +1,13 @@
+.panel {
+  min-width: 0;
+  padding: var(--space-4);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+}
+
+.panelHeading {
+  margin-bottom: var(--space-3);
+  font-size: var(--font-size-heading);
+  line-height: 1.3;
+}

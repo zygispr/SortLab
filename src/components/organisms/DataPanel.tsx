@@ -1,10 +1,10 @@
 import { useId } from 'react';
-import { MAX_SIZE, MIN_SIZE, SIZE_STEP } from '../dataset/random';
-import { useAppStore } from '../store/appStore';
-import controls from './controls.module.css';
+import { MAX_SIZE, MIN_SIZE, SIZE_STEP } from '../../dataset/random';
+import { useAppStore } from '../../store/appStore';
+import controls from '../../styles/controls.module.css';
 import styles from './DataPanel.module.css';
 import { PasteInput } from './PasteInput';
-import { RangeField } from './RangeField';
+import { RangeField } from '../molecules/RangeField';
 import { UploadInput } from './UploadInput';
 
 /**

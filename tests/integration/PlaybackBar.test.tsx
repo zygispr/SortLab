@@ -1,7 +1,7 @@
 import { fireEvent, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { PlaybackBar } from '../../src/components/PlaybackBar';
-import { positionFromSpeed, speedFromPosition } from '../../src/components/SpeedSlider';
+import { PlaybackBar } from '../../src/components/organisms/PlaybackBar';
+import { positionFromSpeed, speedFromPosition } from '../../src/components/organisms/SpeedSlider';
 import type { RunStatus } from '../../src/store/appStore';
 import { resetStore, setRun, spyOn } from './storeHelpers';
 

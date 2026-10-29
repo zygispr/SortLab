@@ -1,18 +1,18 @@
 import { render, screen, within } from '@testing-library/react';
-import { App } from '../../src/App';
+import { SortLabPage } from '../../src/components/pages/SortLabPage';
 import { player, useAppStore } from '../../src/store/appStore';
 import { resetStore, setRun, spyOn } from './storeHelpers';
 
 beforeEach(resetStore);
 
-describe('App shell', () => {
+describe('SortLabPage shell', () => {
   it('shows the app name as the page heading', () => {
-    render(<App />);
+    render(<SortLabPage />);
     expect(screen.getByRole('heading', { level: 1, name: 'SortLab' })).toBeInTheDocument();
   });
 
   it('has every region from the UI contract, labelled, in order', () => {
-    render(<App />);
+    render(<SortLabPage />);
     const names = screen.getAllByRole('region').map((r) => r.getAttribute('aria-labelledby'));
     const labels = names.map((id) => (id ? document.getElementById(id)?.textContent : null));
     expect(labels).toEqual([
@@ -26,13 +26,13 @@ describe('App shell', () => {
   });
 
   it('includes the live region for announcements', () => {
-    render(<App />);
+    render(<SortLabPage />);
     const main = screen.getByRole('main');
     expect(within(main).getByRole('status')).toBeInTheDocument();
   });
 
   it('places the User Story 1 controls in their regions', () => {
-    render(<App />);
+    render(<SortLabPage />);
     const region = (name: string) => screen.getByRole('region', { name });
     expect(within(region('Data')).getByRole('button', { name: 'Generate' })).toBeInTheDocument();
     expect(within(region('Algorithm')).getByRole('combobox', { name: 'Algorithm' })).toBeVisible();
@@ -43,7 +43,7 @@ describe('App shell', () => {
   });
 });
 
-describe('App behaviour', () => {
+describe('SortLabPage behaviour', () => {
   function hidePage(hidden: boolean) {
     Object.defineProperty(document, 'hidden', { configurable: true, get: () => hidden });
     document.dispatchEvent(new Event('visibilitychange'));
@@ -55,7 +55,7 @@ describe('App behaviour', () => {
 
   it('pauses a running sort and announces it when the page is hidden (FR-015)', () => {
     const { pause } = spyOn('pause');
-    render(<App />);
+    render(<SortLabPage />);
     setRun({ status: 'running', total: 10 });
     hidePage(true);
     expect(pause).toHaveBeenCalledOnce();
@@ -64,7 +64,7 @@ describe('App behaviour', () => {
 
   it('leaves a sort that is not running alone when the page is hidden', () => {
     const { pause } = spyOn('pause');
-    render(<App />);
+    render(<SortLabPage />);
     setRun({ status: 'paused', total: 10 });
     hidePage(true);
     expect(pause).not.toHaveBeenCalled();
@@ -82,7 +82,7 @@ describe('App behaviour', () => {
         }) as Partial<MediaQueryList> as MediaQueryList,
     );
     try {
-      render(<App />);
+      render(<SortLabPage />);
       expect(setReducedMotion).toHaveBeenLastCalledWith(true);
     } finally {
       matchMedia.mockRestore();

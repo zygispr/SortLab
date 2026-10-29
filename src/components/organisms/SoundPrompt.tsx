@@ -1,5 +1,5 @@
-import { useAppStore } from '../store/appStore';
-import controls from './controls.module.css';
+import { useAppStore } from '../../store/appStore';
+import controls from '../../styles/controls.module.css';
 import styles from './Sound.module.css';
 
 /** First-visit "Turn on sound" prompt next to Start, until the user answers (FR-026a). */

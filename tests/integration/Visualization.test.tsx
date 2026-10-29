@@ -1,7 +1,7 @@
 import { render, screen, waitFor, within } from '@testing-library/react';
-import { Counters } from '../../src/components/Counters';
-import { Legend } from '../../src/components/Legend';
-import { Visualizer } from '../../src/components/Visualizer';
+import { Counters } from '../../src/components/organisms/Counters';
+import { Legend } from '../../src/components/molecules/Legend';
+import { Visualizer } from '../../src/components/organisms/Visualizer';
 import { useAppStore } from '../../src/store/appStore';
 import { resetStore, setRun } from './storeHelpers';
 

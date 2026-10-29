@@ -6,7 +6,7 @@
 }
 
 .dismiss {
-  composes: button from './controls.module.css';
+  composes: button from '../../styles/controls.module.css';
   border-color: transparent;
   background: transparent;
 }

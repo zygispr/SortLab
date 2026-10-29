@@ -1,7 +1,7 @@
 import { act, fireEvent, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { PlaybackBar } from '../../src/components/PlaybackBar';
-import { SoundControls } from '../../src/components/SoundControls';
+import { PlaybackBar } from '../../src/components/organisms/PlaybackBar';
+import { SoundControls } from '../../src/components/organisms/SoundControls';
 import { soundEngine, useAppStore } from '../../src/store/appStore';
 import { resetStore, setRun } from './storeHelpers';
 

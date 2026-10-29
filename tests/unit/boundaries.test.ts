@@ -87,3 +87,18 @@ describe('dependency rules', () => {
     expect(await messagesFor(level, path)).toEqual([]);
   });
 });
+
+describe('component levels', () => {
+  const LEVELS = ['atoms', 'molecules', 'organisms', 'templates', 'pages'];
+  // Every file under src/components, as '/src/components/<path>' (keys only, nothing loads).
+  const files = Object.keys(import.meta.glob('/src/components/**/*')).map((key) =>
+    key.slice('/src/components/'.length),
+  );
+
+  it('src/components holds only the five level folders (SC-001)', () => {
+    expect(files.length).toBeGreaterThan(0);
+    expect(
+      files.filter((file) => !LEVELS.includes(file.split('/')[0]!) || !file.includes('/')),
+    ).toEqual([]);
+  });
+});

@@ -1,6 +1,6 @@
-import { useAppStore } from '../store/appStore';
-import controls from './controls.module.css';
-import { RangeField } from './RangeField';
+import { useAppStore } from '../../store/appStore';
+import controls from '../../styles/controls.module.css';
+import { RangeField } from '../molecules/RangeField';
 import styles from './Sound.module.css';
 
 /** Mute/Unmute toggle and Volume slider, both applied at once (FR-025). */

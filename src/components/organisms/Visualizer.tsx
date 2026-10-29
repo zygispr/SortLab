@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react';
-import { getAlgorithm } from '../algorithms/registry';
-import { createBarRenderer } from '../render/barRenderer';
-import { player, useAppStore } from '../store/appStore';
+import { getAlgorithm } from '../../algorithms/registry';
+import { createBarRenderer } from '../../render/barRenderer';
+import { player, useAppStore } from '../../store/appStore';
 import styles from './Visualizer.module.css';
 
 /**

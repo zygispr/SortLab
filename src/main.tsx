@@ -1,6 +1,6 @@
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
-import { App } from './App';
+import { SortLabPage } from './components/pages/SortLabPage';
 import './styles/tokens.css';
 import './styles/global.css';
 
@@ -11,6 +11,6 @@ if (!root) {
 
 createRoot(root).render(
   <StrictMode>
-    <App />
+    <SortLabPage />
   </StrictMode>,
 );

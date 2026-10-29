@@ -1,5 +1,5 @@
 import { act, render, screen } from '@testing-library/react';
-import { LiveRegion } from '../../src/components/LiveRegion';
+import { LiveRegion } from '../../src/components/organisms/LiveRegion';
 import { useAppStore } from '../../src/store/appStore';
 
 beforeEach(() => {

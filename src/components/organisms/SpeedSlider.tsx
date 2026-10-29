@@ -1,6 +1,6 @@
-import { MAX_SPEED, MIN_SPEED, useAppStore } from '../store/appStore';
-import { clamp } from '../util/clamp';
-import { RangeField } from './RangeField';
+import { MAX_SPEED, MIN_SPEED, useAppStore } from '../../store/appStore';
+import { clamp } from '../../util/clamp';
+import { RangeField } from '../molecules/RangeField';
 
 /** Slider resolution: positions 0…1000 map logarithmically onto 2…60,000 steps/s. */
 const POSITIONS = 1000;

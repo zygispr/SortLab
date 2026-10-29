@@ -1,8 +1,8 @@
 import { useId } from 'react';
-import { ALGORITHMS, checkSupport, FAMILY_LABELS } from '../algorithms/registry';
-import type { AlgorithmFamily } from '../algorithms/types';
-import { toFacts } from '../dataset/facts';
-import { useAppStore } from '../store/appStore';
+import { ALGORITHMS, checkSupport, FAMILY_LABELS } from '../../algorithms/registry';
+import type { AlgorithmFamily } from '../../algorithms/types';
+import { toFacts } from '../../dataset/facts';
+import { useAppStore } from '../../store/appStore';
 import styles from './AlgorithmPanel.module.css';
 
 const FAMILIES = Object.keys(FAMILY_LABELS) as AlgorithmFamily[];

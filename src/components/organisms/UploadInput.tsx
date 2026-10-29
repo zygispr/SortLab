@@ -1,7 +1,7 @@
 import { useId } from 'react';
-import { readDatasetFile } from '../dataset/parse';
-import { useAppStore } from '../store/appStore';
-import controls from './controls.module.css';
+import { readDatasetFile } from '../../dataset/parse';
+import { useAppStore } from '../../store/appStore';
+import controls from '../../styles/controls.module.css';
 import styles from './DataPanel.module.css';
 
 /**

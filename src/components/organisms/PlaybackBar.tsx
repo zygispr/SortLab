@@ -1,5 +1,5 @@
-import { canReset, canStepBack, canStepForward, useAppStore } from '../store/appStore';
-import controls from './controls.module.css';
+import { canReset, canStepBack, canStepForward, useAppStore } from '../../store/appStore';
+import controls from '../../styles/controls.module.css';
 import styles from './PlaybackBar.module.css';
 import { SoundPrompt } from './SoundPrompt';
 import { SpeedSlider } from './SpeedSlider';

@@ -1,7 +1,7 @@
-import { getAlgorithm } from '../algorithms/registry';
-import { useAppStore } from '../store/appStore';
-import controls from './controls.module.css';
-import { formatSeconds } from './format';
+import { getAlgorithm } from '../../algorithms/registry';
+import { useAppStore } from '../../store/appStore';
+import controls from '../../styles/controls.module.css';
+import { formatSeconds } from '../../util/format';
 import styles from './RunSummary.module.css';
 
 /** Comparisons, moves, and time for every finished run on the current dataset (FR-022). */

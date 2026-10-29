@@ -1,5 +1,5 @@
 import { useId } from 'react';
-import controls from './controls.module.css';
+import controls from '../../styles/controls.module.css';
 
 interface RangeFieldProps {
   label: string;
