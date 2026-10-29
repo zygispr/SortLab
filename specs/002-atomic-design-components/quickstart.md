@@ -113,3 +113,16 @@ quickstart → Measured results:
 
 SC-006: **pass**. Frame rate, control response, and load time are unchanged from feature
 001's measurements.
+
+Walkthrough (T042), 2026-10-29, production build on `npm run preview`, Chromium from
+Playwright 1.64, scripted step by step:
+
+| Scenario | Result |
+|----------|--------|
+| This guide: capture the references, Story 1 (levels, suites, visual check), Story 2 (greps), Story 3 (named lint errors), performance | Pass (T003–T005, T020, T036, T037, T038, T039) |
+| Feature 001 Story 1: 50 bars and Bubble Sort on open; size 200 + Generate; Start moves bars and counters; Space pauses, → → applies two steps, ← undoes one, each announced; max speed finishes with "Sorted with Bubble Sort"; hiding the tab pauses | Pass, 6/6 steps |
+| Feature 001 Story 2: Merge Sort restarts from step 0 and finishes; summary lists both runs; Generate clears it | Pass, 3/3 steps |
+| Feature 001 Story 3: `valid-mixed.csv` loads with Counting and both Radix sorts disabled ("needs whole numbers"); `valid-1000.txt` loads in 7 ms; `header-row.csv` names line 1 with the header hint and keeps the dataset; `too-many.txt` and `image.png` show their messages; pasting `5, 3, 8, 1` gives 4 bars | Pass, 6/6 checks (bar order not checked) |
+| Feature 001 Story 4: fresh visit shows Start · Turn on sound · Not now; after Turn on sound, Start schedules tones; Mute stops new tones while sorting continues; reload keeps it muted without the prompt | Pass, 4/4 steps |
+| Feature 001 Story 4.5, listening at max speed | Not repeated: `src/audio/`, `src/render/`, `src/engine/`, and `src/store/` are unchanged by this feature, so feature 001's listening check (2026-10-28) still applies |
+| SC-005, find a control's component from the README | Pass: Speed slider, Run summary table, and Upload file each take 2 lookups (name in the README's level list, then the file in that level's folder) |
