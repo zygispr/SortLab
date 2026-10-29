@@ -149,8 +149,7 @@ History holds records for the current `Dataset.id` only and is cleared when it c
 |-------|------|---------|-------|
 | `muted` | boolean | `true` | Sound off for first-time visitors (FR-026a) |
 | `volume` | number 0–1 | `0.5` | Moderate volume once enabled |
-| `soundPromptAnswered` | boolean | `false` | Set when the user turns sound on or dismisses the prompt |
 
 Not persisted: `speed` (default 100 steps/s), selected algorithm (default `bubble`),
 dataset. If stored settings are missing, unreadable, or from an unknown version, defaults
-are used.
+are used. Unknown fields, such as the retired `soundPromptAnswered`, are ignored.

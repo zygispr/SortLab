@@ -21,36 +21,35 @@ function store() {
 const stored = () => JSON.parse(localStorage.getItem(SETTINGS_KEY) ?? 'null') as unknown;
 
 const settingsOf = (s: ReturnType<typeof store>['store']) => {
-  const { muted, volume, soundPromptAnswered } = s.getState();
-  return { muted, volume, soundPromptAnswered };
+  const { muted, volume } = s.getState();
+  return { muted, volume };
 };
 
 describe('settings (data-model.md → Settings)', () => {
-  it('defaults to muted, volume 0.5, prompt not answered', () => {
-    expect(DEFAULT_SETTINGS).toEqual({ muted: true, volume: 0.5, soundPromptAnswered: false });
+  it('defaults to muted, volume 0.5', () => {
+    expect(DEFAULT_SETTINGS).toEqual({ muted: true, volume: 0.5 });
     expect(settingsOf(store().store)).toEqual(DEFAULT_SETTINGS);
   });
 
   it('persists changes under sortlab:settings with version 1', () => {
     const { store: s } = store();
-    s.getState().enableSound();
+    s.getState().toggleMute();
     s.getState().setVolume(0.8);
     expect(SETTINGS_KEY).toBe('sortlab:settings');
     expect(stored()).toEqual({
-      state: { muted: false, volume: 0.8, soundPromptAnswered: true },
+      state: { muted: false, volume: 0.8 },
       version: SETTINGS_VERSION,
     });
     expect(SETTINGS_VERSION).toBe(1);
   });
 
   it('restores stored settings in a new store and applies them to the sound engine', () => {
-    store().store.getState().dismissSoundPrompt();
     const first = store().store;
     first.getState().toggleMute();
     first.getState().setVolume(0.2);
 
     const { store: next, sound } = store();
-    expect(settingsOf(next)).toEqual({ muted: false, volume: 0.2, soundPromptAnswered: true });
+    expect(settingsOf(next)).toEqual({ muted: false, volume: 0.2 });
     expect(sound.setMuted).toHaveBeenLastCalledWith(false);
     expect(sound.setVolume).toHaveBeenLastCalledWith(0.2);
   });
@@ -63,7 +62,7 @@ describe('settings (data-model.md → Settings)', () => {
     s.getState().generateDataset();
     s.getState().setVolume(0.3);
     const { state } = stored() as { state: Record<string, unknown> };
-    expect(Object.keys(state).sort()).toEqual(['muted', 'soundPromptAnswered', 'volume']);
+    expect(Object.keys(state).sort()).toEqual(['muted', 'volume']);
 
     const next = store().store.getState();
     expect(next.speed).toBe(100);
@@ -89,5 +88,18 @@ describe('settings (data-model.md → Settings)', () => {
       JSON.stringify({ state: { muted: false, volume: 'loud' }, version: 1 }),
     );
     expect(settingsOf(store().store)).toEqual({ ...DEFAULT_SETTINGS, muted: false });
+  });
+
+  it('keeps mute and volume stored before the sound prompt was removed', () => {
+    localStorage.setItem(
+      SETTINGS_KEY,
+      JSON.stringify({
+        state: { muted: false, volume: 0.7, soundPromptAnswered: true },
+        version: 1,
+      }),
+    );
+    const { store: s } = store();
+    expect(settingsOf(s)).toEqual({ muted: false, volume: 0.7 });
+    expect(s.getState()).not.toHaveProperty('soundPromptAnswered');
   });
 });

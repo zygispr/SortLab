@@ -491,21 +491,6 @@ describe('user datasets (T063)', () => {
 });
 
 describe('sound (T078, T079)', () => {
-  it('enableSound() turns audio on, unmutes, and answers the prompt', () => {
-    const { store, sound } = lifecycleStore();
-    store.getState().enableSound();
-    expect(sound.enable).toHaveBeenCalledOnce();
-    expect(sound.setMuted).toHaveBeenLastCalledWith(false);
-    expect(store.getState()).toMatchObject({ muted: false, soundPromptAnswered: true });
-  });
-
-  it('dismissSoundPrompt() answers the prompt and stays muted', () => {
-    const { store, sound } = lifecycleStore();
-    store.getState().dismissSoundPrompt();
-    expect(sound.enable).not.toHaveBeenCalled();
-    expect(store.getState()).toMatchObject({ muted: true, soundPromptAnswered: true });
-  });
-
   it('toggleMute() and setVolume() reach the sound engine immediately', () => {
     const { store, sound } = lifecycleStore();
     store.getState().toggleMute();
@@ -523,7 +508,7 @@ describe('sound (T078, T079)', () => {
   it('plays one tone per frame at the value of the latest step', async () => {
     const { store, sound, tick } = lifecycleStore();
     await flush();
-    store.getState().enableSound();
+    store.getState().toggleMute();
     store.getState().setSpeed(1000);
     store.getState().start();
     tick(16);
@@ -538,7 +523,7 @@ describe('sound (T078, T079)', () => {
   it('plays a tone for each manual step (FR-012a)', async () => {
     const { store, sound } = lifecycleStore();
     await flush();
-    store.getState().enableSound();
+    store.getState().toggleMute();
     store.getState().stepForward();
     store.getState().stepForward();
     store.getState().stepBack();
@@ -559,7 +544,7 @@ describe('sound (T078, T079)', () => {
   it('plays the completion sweep over the sorted values when a run finishes', async () => {
     const { store, sound, run } = lifecycleStore();
     await flush();
-    store.getState().enableSound();
+    store.getState().toggleMute();
     while (canStepForward(run())) store.getState().stepForward();
     expect(sound.playCompletionSweep).toHaveBeenCalledOnce();
     const sorted = [...store.getState().dataset.original].sort((x, y) => x - y);
@@ -575,7 +560,7 @@ describe('sound (T078, T079)', () => {
 
   it('wakes audio on Start when sound was left on from an earlier visit', async () => {
     const { store, sound } = lifecycleStore();
-    store.getState().enableSound();
+    store.getState().toggleMute();
     sound.enable.mockClear();
     const next = lifecycleStore();
     await flush();

@@ -77,8 +77,9 @@ grep -rn "@include shared\." src | wc -l                 # 12 (one per use in da
 - The breakpoint is defined once (SC-005).
 - The second grep finds nothing, because the `bare-list` and `bordered-surface`
   declarations now exist only in `_shared.scss`.
-- There are 12 includes: `bordered-surface` 4, `bare-list` 3, `wrap-row` 3,
-  `focus-ring` 2.
+- There are 11 includes: `bordered-surface` 4, `bare-list` 3, `wrap-row` 2,
+  `focus-ring` 2. (Revised 2026-10-29 (feature 001, sound prompt removed): was 12, with `wrap-row` 3, before Sound `.prompt` was
+  removed.)
 
 Compare the result against the inventory in
 [data-model.md](./data-model.md#inventory).

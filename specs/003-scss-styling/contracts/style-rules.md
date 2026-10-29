@@ -16,7 +16,7 @@ listed, so including one never adds rules to the shipped styles (FR-008).
 | Wide-screen breakpoint | `$wide: 1024px` | — (used as `@media (min-width: shared.$wide)`) |
 | Bordered surface | `@mixin bordered-surface` | `border: 1px solid var(--color-border); border-radius: var(--radius); background: var(--color-surface);` |
 | Bare list | `@mixin bare-list` | `margin: 0; padding: 0; list-style: none;` |
-| Wrapping row | `@mixin wrap-row($display: flex)` | `display: $display; flex-wrap: wrap; align-items: center; gap: var(--space-2);` |
+| Wrapping row | `@mixin wrap-row` | `display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2);` (Revised 2026-10-29 (feature 001, sound prompt removed): the `$display` parameter was dropped with its only `inline-flex` use) |
 | Focus ring | `@mixin focus-ring` | `outline: var(--focus-width) solid var(--color-focus); outline-offset: 2px;` |
 
 Each item has a one-line `///` comment saying what it is for and where it is used.

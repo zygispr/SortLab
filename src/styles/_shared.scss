@@ -19,9 +19,9 @@ $wide: 1024px;
   list-style: none;
 }
 
-/// A row of items that wraps, centered vertically, with a small gap (PlaybackBar, SoundPrompt).
-@mixin wrap-row($display: flex) {
-  display: $display;
+/// A row of items that wraps, centered vertically, with a small gap (PlaybackBar).
+@mixin wrap-row {
+  display: flex;
   flex-wrap: wrap;
   align-items: center;
   gap: var(--space-2);

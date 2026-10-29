@@ -22,33 +22,26 @@ export interface SoundSettings {
   muted: boolean;
   /** Master volume, 0–1. */
   volume: number;
-  /** The user turned sound on or dismissed the prompt; the prompt never shows again. */
-  soundPromptAnswered: boolean;
 }
 
 /** `localStorage` key and schema version of the persisted settings. */
 export const SETTINGS_KEY = 'sortlab:settings';
 export const SETTINGS_VERSION = 1;
-/** Sound is off for first-time visitors (FR-026a), at half volume once turned on. */
+/** Sound is off for first-time visitors (FR-026a), at half volume once unmuted. */
 export const DEFAULT_SETTINGS: Readonly<SoundSettings> = {
   muted: true,
   volume: 0.5,
-  soundPromptAnswered: false,
 };
 
 /** Valid fields of stored settings; missing or malformed fields fall back to the defaults. */
 function readSettings(stored: unknown): SoundSettings {
   const s: Partial<Record<keyof SoundSettings, unknown>> =
     typeof stored === 'object' && stored !== null ? stored : {};
-  const { muted, volume, soundPromptAnswered } = s;
+  const { muted, volume } = s;
   return {
     muted: typeof muted === 'boolean' ? muted : DEFAULT_SETTINGS.muted,
     volume:
       typeof volume === 'number' && volume >= 0 && volume <= 1 ? volume : DEFAULT_SETTINGS.volume,
-    soundPromptAnswered:
-      typeof soundPromptAnswered === 'boolean'
-        ? soundPromptAnswered
-        : DEFAULT_SETTINGS.soundPromptAnswered,
   };
 }
 
@@ -140,11 +133,10 @@ export interface AppState extends SoundSettings {
   stepBack: () => void;
   /** Returns to the original order at step 0 without starting (US2 scenario 4). */
   reset: () => void;
-  /** "Turn on sound": creates the audio (call from a user gesture), unmutes, hides the prompt. */
-  enableSound: () => void;
-  /** "Not now": hides the prompt for good and stays muted. */
-  dismissSoundPrompt: () => void;
-  /** Mute / Unmute, applied at once (FR-025); unmuting also creates the audio if needed. */
+  /**
+   * Mute / Unmute, applied at once (FR-025). Unmuting also creates the audio if needed,
+   * so call it from a user gesture.
+   */
   toggleMute: () => void;
   /** Sets the volume, clamped to 0–1, applied at once (FR-025). */
   setVolume: (volume: number) => void;
@@ -426,21 +418,11 @@ export function createAppStore(options: StoreOptions = {}) {
             setStatus('ready');
           },
 
-          enableSound: () => {
-            sound.enable();
-            sound.setMuted(false);
-            set({ muted: false, soundPromptAnswered: true });
-          },
-
-          dismissSoundPrompt: () => {
-            set({ soundPromptAnswered: true });
-          },
-
           toggleMute: () => {
             const muted = !get().muted;
             if (!muted) sound.enable();
             sound.setMuted(muted);
-            set({ muted, soundPromptAnswered: true });
+            set({ muted });
           },
 
           setVolume: (value) => {
@@ -454,11 +436,7 @@ export function createAppStore(options: StoreOptions = {}) {
         name: SETTINGS_KEY,
         version: SETTINGS_VERSION,
         storage: createJSONStorage(() => localStorage),
-        partialize: ({ muted, volume, soundPromptAnswered }) => ({
-          muted,
-          volume,
-          soundPromptAnswered,
-        }),
+        partialize: ({ muted, volume }) => ({ muted, volume }),
         // Settings from another schema version are not trusted: start from the defaults.
         migrate: () => ({ ...DEFAULT_SETTINGS }),
         merge: (stored, current) => ({ ...current, ...readSettings(stored) }),

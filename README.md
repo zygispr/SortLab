@@ -99,13 +99,12 @@ self-contained piece of interface.
 
 The components in each level:
 
-- **Atoms**: `Button` (primary, secondary, and quiet variants), `Slider`, `TextArea`,
-  `MutedText`.
+- **Atoms**: `Button` (primary and secondary variants), `Slider`, `TextArea`, `MutedText`.
 - **Molecules**: `RangeField` (labelled slider), `Legend` (bar-state legend), `FileButton`
   (file picker that looks like a button).
 - **Organisms**: `DataPanel`, `UploadInput`, `PasteInput`, `AlgorithmPicker`,
-  `AlgorithmInfo`, `Visualizer`, `Counters`, `PlaybackBar`, `SpeedSlider`, `SoundPrompt`,
-  `SoundControls`, `RunSummary`, `LiveRegion`.
+  `AlgorithmInfo`, `Visualizer`, `Counters`, `PlaybackBar`, `SpeedSlider`, `SoundControls`,
+  `RunSummary`, `LiveRegion`.
 - **Templates**: `PageLayout` (header, controls and stage columns, summary row), `Region`
   (labelled panel).
 - **Pages**: `SortLabPage`.
@@ -150,13 +149,13 @@ where a name comes from:
 }
 ```
 
-| Shared item                | What it is                                                        | Used by                                          |
-| -------------------------- | ----------------------------------------------------------------- | ------------------------------------------------ |
-| `shared.$wide`             | The 1024 px breakpoint for two columns and the full-width summary | `PageLayout`                                     |
-| `bordered-surface`         | Border, radius, and surface background                            | `Button`, `TextArea`, algorithm select, `Region` |
-| `bare-list`                | A list with no bullets, indent, or margins                        | `Legend`, algorithm complexity, `Counters`       |
-| `wrap-row($display: flex)` | A wrapping, vertically centered row with a small gap              | `PlaybackBar`, `SoundPrompt` (`inline-flex`)     |
-| `focus-ring`               | The keyboard focus outline                                        | global `:focus-visible`, `FileButton` label      |
+| Shared item        | What it is                                                        | Used by                                          |
+| ------------------ | ----------------------------------------------------------------- | ------------------------------------------------ |
+| `shared.$wide`     | The 1024 px breakpoint for two columns and the full-width summary | `PageLayout`                                     |
+| `bordered-surface` | Border, radius, and surface background                            | `Button`, `TextArea`, algorithm select, `Region` |
+| `bare-list`        | A list with no bullets, indent, or margins                        | `Legend`, algorithm complexity, `Counters`       |
+| `wrap-row`         | A wrapping, vertically centered row with a small gap              | `PlaybackBar`                                    |
+| `focus-ring`       | The keyboard focus outline                                        | global `:focus-visible`, `FileButton` label      |
 
 Rules:
 

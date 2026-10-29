@@ -18,9 +18,3 @@
   background: var(--color-focus);
   color: var(--color-surface);
 }
-
-.quiet {
-  composes: button;
-  border-color: transparent;
-  background: transparent;
-}

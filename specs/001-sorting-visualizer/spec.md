@@ -16,7 +16,7 @@
 - Q: Should users be able to step through a sort one step at a time? → A: Continuous playback by default, plus Step forward and Step back buttons while paused.
 - Q: Should random datasets offer preset arrangements (nearly sorted, reversed, few unique)? → A: Fully random only.
 - Q: Which algorithms should be offered — only comparison sorts, or also non-comparison sorts like Radix and Counting? → A: As many as possible: 20 algorithms (16 comparison, 4 non-comparison) that all work on any random dataset; Counting and Radix sorts are disabled for uploaded data they cannot handle.
-- Q: Should sound start on or off for a first-time visitor? → A: Off by default, with a visible "Turn on sound" prompt until the user chooses.
+- Q: Should sound start on or off for a first-time visitor? → A: Off by default; the user turns it on with Unmute. (Revised 2026-10-29: the separate "Turn on sound" / "Not now" prompt next to Start was removed because it duplicated Unmute.)
 
 ## User Scenarios & Testing *(mandatory)*
 
@@ -125,20 +125,20 @@ values in order, then sort them with any algorithm.
 
 While sorting, each comparison or move plays a short, pleasant tone whose pitch reflects
 the value involved, so the user can "hear" the data become ordered. A rising sweep of tones
-accompanies the completion animation. Sound starts off; a "Turn on sound" prompt invites
-the user to enable it, and they can mute and adjust the volume at any time.
+accompanies the completion animation. Sound starts off; the user turns it on with Unmute,
+and they can mute and adjust the volume at any time.
 
 **Why this priority**: Sound adds delight and a second sense for following the algorithm,
 but the visual experience is complete without it.
 
-**Independent Test**: Turn sound on from the prompt, start a sort, and confirm tones play in step with the
+**Independent Test**: Press Unmute, start a sort, and confirm tones play in step with the
 animation, their pitch rises with value, and muting silences them immediately.
 
 **Acceptance Scenarios**:
 
 1. **Given** a first-time visitor opens the app, **When** the page loads, **Then** sound is
-   off and a "Turn on sound" prompt is shown next to Start; **When** they accept it,
-   **Then** sound turns on and the prompt disappears.
+   off and the Sound controls show Unmute; **When** they press it, **Then** sound turns
+   on and the button changes to Mute.
 2. **Given** sound is on, **When** sorting is in progress, **Then** a tone plays for each
    visualized step, with higher values producing higher pitches.
 3. **Given** sound is on, **When** the user presses Mute, **Then** sound stops immediately
@@ -268,9 +268,8 @@ animation, their pitch rises with value, and muting silences them immediately.
 - **FR-025**: Users MUST be able to mute/unmute and adjust volume at any time; the change
   MUST take effect immediately.
 - **FR-026**: System MUST remember the user's mute and volume choice on the same device.
-- **FR-026a**: Sound MUST be off for a first-time visitor. Until the user turns sound on
-  or dismisses it, a visible "Turn on sound" prompt MUST appear next to the Start control;
-  once the user makes either choice, the prompt MUST NOT reappear on that device.
+- **FR-026a**: Sound MUST be off for a first-time visitor; the Unmute control in the Sound
+  controls turns it on. No separate sound prompt is shown.
 - **FR-027**: Sound MUST stay pleasant at every speed: no clicks or distortion, and overall
   loudness MUST NOT build up as steps get faster.
 

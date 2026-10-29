@@ -106,7 +106,7 @@ function setup() {
   return { engine, contexts, ctx, master };
 }
 
-/** Enabled and unmuted at full volume, as after "Turn on sound". */
+/** Enabled and unmuted at full volume, as after "Unmute". */
 function enabled() {
   const s = setup();
   s.engine.setVolume(1);

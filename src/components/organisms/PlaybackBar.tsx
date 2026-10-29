@@ -2,7 +2,6 @@ import { canReset, canStepBack, canStepForward, useAppStore } from '../../store/
 import { Button } from '../atoms/Button';
 import { MutedText } from '../atoms/MutedText';
 import styles from './PlaybackBar.module.scss';
-import { SoundPrompt } from './SoundPrompt';
 import { SpeedSlider } from './SpeedSlider';
 
 const TOGGLE_LABEL = {
@@ -25,7 +24,6 @@ export function PlaybackBar() {
         <Button variant="primary" onClick={togglePlay}>
           {TOGGLE_LABEL[run.status]}
         </Button>
-        <SoundPrompt />
         <Button disabled={!canStepBack(run)} onClick={stepBack}>
           Step back
         </Button>

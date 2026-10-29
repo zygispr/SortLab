@@ -1,9 +1,3 @@
-@use '../../styles/shared';
-
-.prompt {
-  @include shared.wrap-row(inline-flex);
-}
-
 .controls {
   display: flex;
   flex-wrap: wrap;
