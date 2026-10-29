@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react';
 import styles from './MutedText.module.css';
 
-export interface MutedTextProps {
+interface MutedTextProps {
   /** `p` (default) for a line of its own, `span` where it sits inline among controls. */
   as?: 'p' | 'span';
   children: ReactNode;

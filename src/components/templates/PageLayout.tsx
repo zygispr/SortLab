@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react';
 import styles from './PageLayout.module.css';
 
-export interface PageLayoutProps {
+interface PageLayoutProps {
   /** The `<h1>` in the page header. */
   title: string;
   /** Left column from 1,024 px (the Data and Algorithm regions). */

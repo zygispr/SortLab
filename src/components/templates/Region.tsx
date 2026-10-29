@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react';
 import styles from './Region.module.css';
 
-export interface RegionProps {
+interface RegionProps {
   /** Base id; the heading gets `${id}-heading`, which names the section. */
   id: string;
   /** The `<h2>` text and the region's accessible name. */

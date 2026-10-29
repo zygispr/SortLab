@@ -1,7 +1,7 @@
 import type { TextareaHTMLAttributes } from 'react';
 import styles from './TextArea.module.css';
 
-export interface TextAreaProps extends TextareaHTMLAttributes<HTMLTextAreaElement> {
+interface TextAreaProps extends TextareaHTMLAttributes<HTMLTextAreaElement> {
   /** Marks the content as invalid: sets `aria-invalid="true"` and shows the error border. */
   invalid?: boolean;
 }

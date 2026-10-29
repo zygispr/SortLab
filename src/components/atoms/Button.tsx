@@ -1,7 +1,7 @@
 import type { ButtonHTMLAttributes } from 'react';
 import styles from './Button.module.css';
 
-export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
+interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   /**
    * `primary`: filled with the focus color (Start, Generate). `secondary` (default):
    * bordered surface. `quiet`: no border or background ("Not now").

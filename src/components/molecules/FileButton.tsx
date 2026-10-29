@@ -1,7 +1,7 @@
 import { useId } from 'react';
 import styles from './FileButton.module.css';
 
-export interface FileButtonProps {
+interface FileButtonProps {
   /** Visible text and accessible name, e.g. "Upload file". */
   label: string;
   /** File types the picker offers (the input's `accept`). */

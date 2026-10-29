@@ -96,3 +96,20 @@ limit is the "Before" total + 2%: 91,448 × 1.02 = **93,277 bytes**.
 | Measured | Commit | `index-*.js` | `steps.worker-*.js` | `index-*.css` | Total gzip JS + CSS |
 |----------|--------|--------------|---------------------|---------------|---------------------|
 | Before (flat `src/components/`) | `9a94383` | 83,785 (raw 266,435) | 5,356 (raw 14,751) | 2,307 (raw 7,837) | **91,448** |
+| After (atomic levels) | `5761cb3` | 84,108 (raw 267,075) | 5,356 (raw 14,751) | 2,350 (raw 8,022) | **91,814** (+366, +0.40%) |
+
+SC-006 bundle size: **pass**. The total grew 0.40%, under the 2% limit; the worker chunk is
+byte-identical, and the growth is the new component wrappers and CSS module class names.
+
+Performance re-check (T039), 2026-10-29, production build `5761cb3` on `npm run preview`,
+Apple Silicon Mac, Chromium from Playwright 1.64, using the method in feature 001's
+quickstart → Measured results:
+
+| Check | Measured | Target | Result |
+|-------|----------|--------|--------|
+| Frame rate, 1,000 values, Bubble Sort at 60,000 steps/s, started with Space, 5 s sample | 1× CPU: 60 fps, p95 frame 16.7 ms, max 16.8 ms. 4× CPU: 60 fps, p95 16.7 ms, max 16.8 ms. 0 frames > 50 ms and 0 long animation frames ≥ 50 ms at both rates | No frames > 50 ms, ~60 fps | Pass |
+| Pause click response, 4× CPU, same load, real mouse clicks | Event Timing (input to next paint): 40 ms on the first Pause of the page, then 24 ms and < 16 ms | < 100 ms | Pass |
+| Load, Lighthouse 12.8.2, mobile preset (150 ms RTT, 1.6 Mbps, 4× CPU) | Time to Interactive 1.35–1.46 s, FCP and LCP 1.35 s, TBT 0–52 ms, CLS 0, score 100 (5 runs). The very first run after installing Lighthouse scored 90 (TTI 1.88 s, TBT 417 ms); run alternately against the pre-restructure build (`9a94383`) on the same machine, both builds scored 100 with TTI 1.35–1.44 s and TBT 0–10 ms, so that run was noise, not a regression | Interactive < 2 s | Pass |
+
+SC-006: **pass**. Frame rate, control response, and load time are unchanged from feature
+001's measurements.

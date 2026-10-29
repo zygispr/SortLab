@@ -1,6 +1,6 @@
 import styles from './Slider.module.css';
 
-export interface SliderProps {
+interface SliderProps {
   /** Links the slider to its `<label htmlFor>`. */
   id: string;
   min: number;
