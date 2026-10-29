@@ -284,15 +284,15 @@ enforced by the standard lint and test gates.
 
 **Purpose**: Performance proof, final gates, and walkthrough
 
-- [ ] T024 [P] Record the "After" sizes in `specs/003-scss-styling/quickstart.md` → Measured results, using the same method as T002 (raw and gzip bytes per `dist/assets` file, plus the JS + CSS gzip total).
+- [X] T024 [P] Record the "After" sizes in `specs/003-scss-styling/quickstart.md` → Measured results, using the same method as T002 (raw and gzip bytes per `dist/assets` file, plus the JS + CSS gzip total).
   - Confirm the CSS chunk grew ≤ 5% (FR-016, SC-007).
   - Confirm `steps.worker-*.js` is byte-identical.
   - Confirm the main JS chunk differs only by hashed class-name strings.
   - Add the final T021 diff summary.
-- [ ] T025 [P] Re-run the performance checks from feature 001's quickstart (frame-rate and Pause-response rows, at 1× and 4× CPU) and the Lighthouse mobile preset against `npm run preview`.
+- [X] T025 [P] Re-run the performance checks from feature 001's quickstart (frame-rate and Pause-response rows, at 1× and 4× CPU) and the Lighthouse mobile preset against `npm run preview`.
   - Record them as a table in `specs/003-scss-styling/quickstart.md` → Measured results, in the same format as feature 002's.
   - Targets: no frames > 50 ms, response < 100 ms, interactive < 2 s.
-- [ ] T026 Remove leftovers:
+- [X] T026 Remove leftovers:
   - `find src -name '*.css'` prints nothing, and `grep -rn "module\.css" src tests README.md eslint.boundaries.js` finds nothing.
   - Every class in each `.module.scss` is still used by its component.
   - Every shared item in `_shared.scss` is used at least once.
@@ -302,7 +302,7 @@ enforced by the standard lint and test gates.
   - Confirm `git status tests/e2e/visual.spec.ts-snapshots` is clean.
   - Push, and confirm the `CI` workflow passes on Linux, including Firefox and `visual.spec.ts` against the unchanged Linux references.
   - Fix every failure.
-- [ ] T028 Walk through `specs/003-scss-styling/quickstart.md` and feature 001's quickstart → Validation scenarios (Stories 1–4) against `npm run preview`.
+- [X] T028 Walk through `specs/003-scss-styling/quickstart.md` and feature 001's quickstart → Validation scenarios (Stories 1–4) against `npm run preview`.
   - Confirm SC-006: for three elements a reviewer picks at random (for example the Pause button, the wide-screen summary row, and the first Run summary column), every rule that affects each one is found in one block of its component's stylesheet within 30 seconds.
   - Record the walkthrough table in quickstart → Measured results.
 

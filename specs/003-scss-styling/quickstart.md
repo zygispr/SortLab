@@ -146,6 +146,21 @@ is the "Before" gzip size + 5%: 2,350 × 1.05 = **2,467 bytes** (raw: 8,022 × 1
 | Measured | Commit | `index-*.js` | `steps.worker-*.js` | `index-*.css` | Total gzip JS + CSS |
 |----------|--------|--------------|---------------------|---------------|---------------------|
 | Before (plain CSS) | `3271b34` | 84,108 (raw 267,075) | 5,356 (raw 14,751) | 2,350 (raw 8,022) | **91,814** |
+| After (SCSS) | `35d2d57` | 84,103 (raw 267,073) | 5,356 (raw 14,751) | 2,337 (raw 8,045) | **91,796** (−18, −0.02%) |
+
+FR-016 / SC-007 shipped styles: **pass**. The CSS chunk is 2,337 B gzip, 13 B smaller
+(−0.55%) and well under the 2,467 B limit. Raw, it is 23 B larger (+0.29%), because
+PageLayout's wide-screen query is now emitted twice.
+
+- **`steps.worker-*.js`**: byte-identical (`cmp` against a build of `3271b34` in a
+  temporary worktree; same content hash, `Crl2wk39`).
+- **`index-*.js`**: 2 B smaller raw. A byte diff is not meaningful, because FileButton now
+  imports `atoms/Button` (T007), which changes module order, so the minifier assigns
+  different short identifiers throughout the bundle. Instead:
+  - The source changes in `.ts`/`.tsx` since `3271b34` are only the 22 stylesheet import
+    paths, the `buttonClass()` helper and its use in FileButton, and 3 comments.
+  - With hashed class names normalized, the bundle's string literals are identical. The
+    one difference is a minified function name inside a template string.
 
 The "Before" CSS was saved normalized (hashed class names replaced by their local names,
 453 lines) to `$TMPDIR/sortlab-css-before.css` on 2026-10-29. If it is lost, rebuild it
@@ -204,4 +219,50 @@ afterwards.
 SC-008: **pass**. Each check fails on its violation, names the file, and passes again
 once the violation is removed.
 
-_Still to fill: the after sizes and the performance rows._
+### Performance re-check (T025), 2026-10-29
+
+Measured on the production build `35d2d57` with `npm run preview`, on an Apple Silicon
+Mac with Chromium 156.0.8078.4 from Playwright 1.64. The method is feature 001's
+quickstart → Measured results: a Playwright and CDP script with 1,000 values, Bubble Sort,
+the Speed slider at maximum (60,000 steps/s), and the run started with Space.
+
+| Check | Measured | Target | Result |
+|-------|----------|--------|--------|
+| Frame rate over a 5 s sample, while sorting | 1× CPU: 60 fps, p95 frame 16.8 ms, max 16.8 ms. 4× CPU: 60 fps, p95 16.8 ms, max 16.8 ms. 0 frames > 50 ms and 0 long animation frames ≥ 50 ms at both rates. Still sorting when the sample ended | No frames > 50 ms, ~60 fps | Pass |
+| Pause and Resume response, 4× CPU, same load, 5 real mouse clicks each | Event Timing (input to next paint): 16–24 ms for every `pointerdown` and `click` | < 100 ms | Pass |
+| Load, Lighthouse 12.8.2, mobile preset (150 ms RTT, 1.6 Mbps, 4× CPU), 5 runs | Time to Interactive 1.35–1.41 s, FCP and LCP 1.35 s, TBT 0–8 ms, CLS 0, score 100 in every run | Interactive < 2 s | Pass |
+
+FR-016 / SC-007 runtime budgets: **pass**. They are unchanged from features 001 and 002,
+as expected: the browser still receives plain CSS, and the CSS is smaller gzipped.
+
+### Walkthrough (T028), 2026-10-29
+
+Run against the production build on `npm run preview`, with Chromium 156 from Playwright
+1.64, scripted step by step. The script checked each step against the page's accessible
+names, the live region, and the counters.
+
+| Scenario | Result |
+|----------|--------|
+| This guide: baseline (§1), Story 1, Story 2, and Story 3 checks, compiled-CSS reviews (§3), performance (§4) | Pass (T002, T016, T021, T023, T024, T025) |
+| Feature 001 Story 1: 50 bars and Bubble Sort on open; size 200 + Generate; Start makes the counters rise; Space pauses, → → applies two steps (26 → 28), ← undoes one (→ 27), each announced; max speed finishes with "Sorted with Bubble Sort"; hiding the tab pauses ("Paused.") | Pass, 6/6 steps |
+| Feature 001 Story 2: Merge Sort restarts from the start and finishes; the summary lists Bubble Sort and Merge Sort; Generate clears it | Pass, 3/3 steps |
+| Feature 001 Story 3: `valid-mixed.csv` loads with Counting and both Radix sorts disabled ("needs whole numbers"); `valid-1000.txt` loads in 27 ms; `header-row.csv`, `too-many.txt`, and `image.png` show their messages and keep the dataset; pasting `5, 3, 8, 1` gives 4 bars | Pass, 6/6 checks |
+| Feature 001 Story 4: a fresh visit shows Turn on sound and Not now next to Start; after Turn on sound, Start scheduled 35 tones in 0.8 s (counted by wrapping `OscillatorNode.start`); Mute stops new tones while sorting continues (step 36 → 72); reload keeps it muted without the prompt | Pass, 4/4 steps |
+| Feature 001 Story 4.5, listening at max speed | Not repeated: `src/audio/` is unchanged by this feature, so feature 001's listening check (2026-10-28) still applies |
+
+SC-006 readability, three elements checked:
+
+| Element | Where its component rules are | Result |
+|---------|-------------------------------|--------|
+| The Pause button | `atoms/Button.module.scss`: one `.button` block holding the base look (`bordered-surface`) and `&:hover:not(:disabled)`. The page-wide `:focus-visible` and `button:disabled` rules in `global.scss` are exempt under SC-004 | Pass |
+| The wide-screen summary row | `templates/PageLayout.module.scss`: one `.summary` block holding `min-width: 0` and its `@media (min-width: shared.$wide)` change | Pass |
+| The first Run summary column | `organisms/RunSummary.module.scss`: one `.table` block, with `th, td` and their `&:first-child` override nested together | Pass |
+
+Each lookup is one file and one block. This was checked by reading the files, not timed
+with a separate reviewer.
+
+Final gates (T027) before the push: lint (ESLint + Stylelint), format, typecheck, 576/576
+unit and component tests, the build, and 61 e2e tests on chromium, webkit, and phone (17
+skipped) all pass. The visual check reports 0 differing pixels, and the reference images
+are unchanged. CI passed on Linux, including Firefox, for `2969219` (the SCSS conversion)
+and `35d2d57`.

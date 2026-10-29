@@ -78,9 +78,10 @@ export default {
 ```
 
 The `package.json` `lint` script becomes
-`eslint . --max-warnings 0 && stylelint "src/**/*.scss" --max-warnings 0 --allow-empty-input`
-(the last flag keeps lint green before the first `.scss` exists). CI's existing
-`npm run lint` step then covers it.
+`eslint . --max-warnings 0 && stylelint "src/**/*.scss" --max-warnings 0`. CI's existing
+`npm run lint` step then covers it. During the conversion, T004 added
+`--allow-empty-input` so lint stayed green before the first `.scss` existed. T026 removed
+it, so a glob that matches nothing fails instead of passing silently.
 
 `tests/unit/styleRules.test.ts` runs in the default jsdom environment. The shared
 `tests/setup.ts` patches browser globals, so it cannot load under `node`. Stylelint's
