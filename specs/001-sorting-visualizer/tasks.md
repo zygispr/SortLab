@@ -261,7 +261,7 @@ the Unmute control in the Sound controls turns it on. No separate sound prompt i
 - [X] T096 Update the macOS visual references: `npx playwright test tests/e2e/visual.spec.ts --project=chromium --update-snapshots`, then `--repeat-each=3` passes 24/24; the 4 full-page images change, the `data-error` and `upload-focus` ones do not
 - [X] T097 Update the Linux visual references: push the branch, run `gh workflow run visual-baselines.yml --ref <branch>`, download the `visual-baselines` artifact into `tests/e2e/visual.spec.ts-snapshots/`, and commit the 4 changed `*-chromium-linux.png` full-page images
 - [X] T098 Run the quality gates locally: `npm run typecheck`, `npm run lint`, `npm run format:check`, `npm test` (571 pass), and `npx playwright test` on chromium, webkit, and phone (Firefox runs in CI only)
-- [ ] T099 Confirm CI is green on the pushed branch, including Firefox and the Linux visual references (depends on T097)
+- [X] T099 Confirm CI is green on the pushed branch, including Firefox and the Linux visual references (depends on T097)
 
 ---
 
