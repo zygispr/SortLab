@@ -99,14 +99,19 @@ self-contained piece of interface.
 
 The components in each level:
 
-- **Atoms**: none yet.
-- **Molecules**: `RangeField` (labelled slider), `Legend` (bar-state legend).
+- **Atoms**: `Button` (primary, secondary, and quiet variants), `Slider`, `TextArea`,
+  `MutedText`.
+- **Molecules**: `RangeField` (labelled slider), `Legend` (bar-state legend), `FileButton`
+  (file picker that looks like a button).
 - **Organisms**: `DataPanel`, `UploadInput`, `PasteInput`, `AlgorithmPicker`,
   `AlgorithmInfo`, `Visualizer`, `Counters`, `PlaybackBar`, `SpeedSlider`, `SoundPrompt`,
   `SoundControls`, `RunSummary`, `LiveRegion`.
 - **Templates**: `PageLayout` (header, controls and stage columns, summary row), `Region`
   (labelled panel).
 - **Pages**: `SortLabPage`.
+
+Use `Button` for every button and `RangeField` for every labelled slider; they carry the
+shared look, focus outline, disabled state, and accessible labelling.
 
 Code that is not a component stays outside the levels: helpers in `src/util/` (`clamp`,
 `formatSeconds`), hooks in `src/hooks/`, and shared styles in `src/styles/`.
